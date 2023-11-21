@@ -1,0 +1,52 @@
+<!-- brightly_layout.xml -->
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <!-- Head 영역 -->
+        <TextView
+            android:id="@+id/head_text_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Brigtly 밝게"
+            android:gravity="center"
+            android:background="#DDD"
+            android:padding="16dp"/> <!--높이를 조절 -->
+
+        <!-- Body 영역 -->
+        <fragment
+            android:id="@+id/map"
+            android:name="com.google.android.gms.maps.SupportMapFragment"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <!-- Tail 영역 -->
+        <TextView
+            android:id="@+id/tail_text_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="여기에 정보 표시"
+            android:gravity="center"
+            android:background="#DDD"
+            android:padding="16dp"/> <!--높이를 조절 -->
+
+        <Button
+            android:id="@+id/buttonCurrentLocation"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="현재 위치에 마커찍기"
+            android:layout_gravity="center_horizontal" />
+
+        <Button
+            android:id="@+id/delete_marker_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="마커 삭제"
+            android:layout_gravity="center_horizontal" />
+
+    </LinearLayout>
+
+</layout>
