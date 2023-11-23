@@ -14,6 +14,7 @@ import androidx.core.content.ContextCompat;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -26,7 +27,7 @@ public class CurrentLocation {
     private LocationManager locationManager;
     private LatLng currentLatLng;
     private static final long MIN_TIME = 400;
-    private static final float MIN_DISTANCE = 1000;
+    private static final float MIN_DISTANCE = 30;
     private Marker currentLocationMarker;
 
     public CurrentLocation(Context context, GoogleMap googleMap) {
@@ -39,19 +40,23 @@ public class CurrentLocation {
         LocationListener locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
-                LatLng userLocation = new LatLng(location.getLatitude(), location.getLongitude());
-                Log.d(TAG, "Location updated: " + userLocation.toString()); // 로그 추가
+                currentLatLng = new LatLng(location.getLatitude(), location.getLongitude()); // 여기를 수정
+                Log.d(TAG, "Location updated: " + currentLatLng.toString()); // 로그 수정
 
                 if (currentLocationMarker == null) {
-                    // 처음 위치를 받았을 때 마커 생성
-                    currentLocationMarker = googleMap.addMarker(new MarkerOptions().position(userLocation).title("현재 위치"));
+                    // 처음 위치를 받았을 때 파랑색 마커 생성
+                    currentLocationMarker = googleMap.addMarker(new MarkerOptions()
+                            .position(currentLatLng)
+                            .title("현재 위치")
+                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
                 } else {
                     // 위치가 변경되면 마커의 위치 업데이트
-                    currentLocationMarker.setPosition(userLocation);
+                    currentLocationMarker.setPosition(currentLatLng);
                 }
 
-                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 15));
+                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15));
             }
+
 
             @Override
             public void onStatusChanged(String provider, int status, Bundle extras) {

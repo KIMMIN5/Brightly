@@ -15,21 +15,23 @@ public class SaveMarker {
 
     public void saveMarkerPosition(LatLng latLng) {
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        Set<String> markers = sharedPreferences.getStringSet("markers", new HashSet<>());
+        Set<String> currentMarkers = sharedPreferences.getStringSet("markers", new HashSet<>());
+        Set<String> updatedMarkers = new HashSet<>(currentMarkers); // 새로운 Set 인스턴스 생성
         String latLngString = latLng.latitude + "," + latLng.longitude;
-        markers.add(latLngString); // 마커 위치를 String 형태로 추가
-        editor.putStringSet("markers", markers); // 마커 위치 Set 저장
+        updatedMarkers.add(latLngString); // 새로운 Set에 마커 위치 추가
+        editor.putStringSet("markers", updatedMarkers); // 새로운 Set 저장
         editor.apply();
     }
 
     public void removeMarkerPosition(LatLng latLngToRemove) {
-        Set<String> markers = sharedPreferences.getStringSet("markers", new HashSet<>());
+        Set<String> currentMarkers = sharedPreferences.getStringSet("markers", new HashSet<>());
+        Set<String> updatedMarkers = new HashSet<>(currentMarkers); // 새로운 Set 인스턴스 생성
         String latLngToRemoveString = latLngToRemove.latitude + "," + latLngToRemove.longitude;
 
-        if (markers.contains(latLngToRemoveString)) {
-            markers.remove(latLngToRemoveString);
+        if (updatedMarkers.contains(latLngToRemoveString)) {
+            updatedMarkers.remove(latLngToRemoveString); // 새로운 Set에서 마커 위치 제거
             SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putStringSet("markers", markers);
+            editor.putStringSet("markers", updatedMarkers); // 새로운 Set 저장
             editor.apply();
         }
     }

@@ -1,5 +1,7 @@
 package com.example.brightly;
 
+import static com.example.brightly.SharedPreferencesExporter.exportSharedPreferences;
+
 import androidx.fragment.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -28,6 +30,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     private TextView tailTextView; // Tail 영역에 대한 참조
     private Marker selectedMarker; // 현재 선택된 마커에 대한 참조
     private Button deleteMarkerButton; // 마커 삭제 버튼
+    private Button exportButton; // 내보내기 버튼 추가
 
 
     @Override
@@ -51,9 +54,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         currentLocationButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (currentLocation != null) {
-                    buttonOfCurrent.addMarkerAtCurrentLocation();
-                }
+                Log.d("MainActivity", "Current location button clicked"); // 로그 추가
+                buttonOfCurrent.addMarkerAtCurrentLocation();
             }
         });
 
@@ -73,6 +75,15 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                     saveMarker.removeMarkerPosition(markerPosition); // SharedPreferences에서 마커 정보 삭제
                     selectedMarker = null; // 참조 초기화
                 }
+            }
+        });
+
+        // 내보내기 버튼 초기화 및 리스너 설정
+        exportButton = findViewById(R.id.export_button);
+        exportButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                exportSharedPreferences();
             }
         });
     }
@@ -121,5 +132,10 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 Log.d("MainActivity", "Adding saved marker: " + latLng.toString()); // 로그 출력
             }
         }
+    }
+
+    // SharedPreferences 데이터를 내보내는 메소드
+    private void exportSharedPreferences() {
+        SharedPreferencesExporter.exportSharedPreferences(this, "MarkerPref");
     }
 }
