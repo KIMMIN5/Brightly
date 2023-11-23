@@ -2,12 +2,18 @@ package com.example.brightly;
 
 import static com.example.brightly.SharedPreferencesExporter.exportSharedPreferences;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatDelegate;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
+
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
 import android.view.View;
 import android.widget.TextView;
+import android.Manifest;
 
 import com.example.brightly.databinding.BrightlyLayoutBinding;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -20,7 +26,8 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.Set;
 
-public class MainActivity extends FragmentActivity implements OnMapReadyCallback {
+public class MainActivity extends FragmentActivity implements OnMapReadyCallback, Permissions.LocationPermissionHandler {
+
     private BrightlyLayoutBinding binding;
     private GoogleMap mMap;
     private CurrentLocation currentLocation;
@@ -86,11 +93,40 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 exportSharedPreferences();
             }
         });
+
+        // 위치 관련 기능 초기화
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            initializeLocationRelatedStuff();
+        }
+
+        // 위치 권한 요청
+        Permissions.checkLocationPermission(this);
+    }
+
+    @Override
+    public void initializeLocationRelatedStuff() {
+        if (mMap != null && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            currentLocation = new CurrentLocation(this, mMap);
+            currentLocation.initializeLocationListener();
+        }
+
+        // 현재 위치에 마커를 추가하는 버튼 객체 초기화
+        buttonOfCurrent = new ButtonOfCurrent(currentLocation, mMap, saveMarker);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        Permissions.onRequestPermissionsResult(this, requestCode, grantResults);
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+
+        // 주야간 모드에 따른 지도 스타일 설정
+        DayAndNight.setMapStyleBasedOnTime(mMap, this);
 
         // CreateMap 클래스를 사용하여 지도 초기화
         com.example.brightly.CreateMap createMap = new com.example.brightly.CreateMap(mMap);
@@ -113,6 +149,12 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 limitedBoundary = new LimitedBoundary(mMap, polygonBounds);
             }
         });
+
+        // 지도가 준비된 후 위치 관련 기능 초기화 (권한이 이미 부여된 경우에만)
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            initializeLocationRelatedStuff();
+        }
 
         // 마커 클릭 이벤트 처리
         mMap.setOnMarkerClickListener(marker -> {
@@ -139,3 +181,4 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         SharedPreferencesExporter.exportSharedPreferences(this, "MarkerPref");
     }
 }
+

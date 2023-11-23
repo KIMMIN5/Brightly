@@ -2,9 +2,7 @@ package com.example.brightly;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Environment;
 import android.util.Log;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -16,9 +14,13 @@ public class SharedPreferencesExporter {
         SharedPreferences sharedPreferences = context.getSharedPreferences(sharedPreferencesName, Context.MODE_PRIVATE);
         Map<String, ?> allEntries = sharedPreferences.getAll();
 
-        File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-        File file = new File(downloadsDir, sharedPreferencesName + ".txt");
+        File exportDir = context.getExternalFilesDir(null);
+        if (exportDir == null) {
+            Log.e("SharedPreferencesExport", "External storage not available");
+            return;
+        }
 
+        File file = new File(exportDir, sharedPreferencesName + ".txt");
         try (FileWriter writer = new FileWriter(file)) {
             for (Map.Entry<String, ?> entry : allEntries.entrySet()) {
                 writer.append(entry.getKey()).append(": ").append(entry.getValue().toString()).append("\n");

@@ -1,6 +1,7 @@
 package com.example.brightly;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -36,27 +37,33 @@ public class CurrentLocation {
         this.locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
     }
 
+    // 이 메소드는 위치 권한이 부여된 후에 호출되어야 합니다.
     public void initializeLocationListener() {
         LocationListener locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
-                currentLatLng = new LatLng(location.getLatitude(), location.getLongitude()); // 여기를 수정
-                Log.d(TAG, "Location updated: " + currentLatLng.toString()); // 로그 수정
+                // 여기에서 googleMap이 null인지 확인
+                if (googleMap != null) {
+                    if (location != null) {
+                        currentLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+                        Log.d(TAG, "Location updated: " + currentLatLng.toString());
+                        if (currentLocationMarker == null) {
+                            currentLocationMarker = googleMap.addMarker(new MarkerOptions()
+                                    .position(currentLatLng)
+                                    .title("현재 위치")
+                                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
+                        } else {
+                            currentLocationMarker.setPosition(currentLatLng);
+                        }
 
-                if (currentLocationMarker == null) {
-                    // 처음 위치를 받았을 때 파랑색 마커 생성
-                    currentLocationMarker = googleMap.addMarker(new MarkerOptions()
-                            .position(currentLatLng)
-                            .title("현재 위치")
-                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
+                        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15));
+                    } else {
+                        Log.d(TAG, "Location is null");
+                    }
                 } else {
-                    // 위치가 변경되면 마커의 위치 업데이트
-                    currentLocationMarker.setPosition(currentLatLng);
+                    Log.d(TAG, "GoogleMap is null");
                 }
-
-                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15));
             }
-
 
             @Override
             public void onStatusChanged(String provider, int status, Bundle extras) {
@@ -77,6 +84,8 @@ public class CurrentLocation {
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_TIME, MIN_DISTANCE, locationListener);
+        } else {
+            Log.d(TAG, "Location permission not granted");
         }
     }
 

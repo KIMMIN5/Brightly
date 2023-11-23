@@ -1,7 +1,6 @@
 package com.example.brightly;
 
 import android.util.Log;
-
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
@@ -19,12 +18,13 @@ public class ButtonOfCurrent {
     }
 
     public void addMarkerAtCurrentLocation() {
-        Log.d("ButtonOfCurrent", "Adding marker at current location"); // 로그 추가
         LatLng currentLatLng = currentLocation.getCurrentLatLng();
         if (currentLatLng != null) {
             mMap.addMarker(new MarkerOptions().position(currentLatLng).title("현재 위치"));
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15));
             saveMarker.saveMarkerPosition(currentLatLng);
+        } else {
+            Log.d("ButtonOfCurrent", "Current location is null");
         }
     }
 }
