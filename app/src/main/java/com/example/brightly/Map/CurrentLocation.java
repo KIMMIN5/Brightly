@@ -1,4 +1,4 @@
-package com.example.brightly;
+package com.example.brightly.Map;
 
 import android.Manifest;
 import android.app.Activity;

@@ -1,9 +1,6 @@
 package com.example.brightly;
 
-import static com.example.brightly.SharedPreferencesExporter.exportSharedPreferences;
-
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 
@@ -15,6 +12,15 @@ import android.view.View;
 import android.widget.TextView;
 import android.Manifest;
 
+import com.example.brightly.Admin.ButtonOfCurrent;
+import com.example.brightly.Map.CreateMap;
+import com.example.brightly.Map.CurrentLocation;
+import com.example.brightly.Map.DayAndNight;
+import com.example.brightly.Map.LimitedBoundary;
+import com.example.brightly.User.Permissions;
+import com.example.brightly.R;
+import com.example.brightly.Admin.SaveMarker;
+import com.example.brightly.Admin.SharedPreferencesExporter;
 import com.example.brightly.databinding.BrightlyLayoutBinding;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -129,7 +135,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         DayAndNight.setMapStyleBasedOnTime(mMap, this);
 
         // CreateMap 클래스를 사용하여 지도 초기화
-        com.example.brightly.CreateMap createMap = new com.example.brightly.CreateMap(mMap);
+        CreateMap createMap = new CreateMap(mMap);
 
         // 현재 위치를 추적하는 객체 초기화
         currentLocation = new CurrentLocation(this, mMap);

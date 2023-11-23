@@ -1,4 +1,4 @@
-package com.example.brightly;
+package com.example.brightly.User;
 
 import android.Manifest;
 import android.app.Activity;

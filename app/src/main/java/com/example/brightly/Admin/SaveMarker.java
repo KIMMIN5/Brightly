@@ -1,4 +1,4 @@
-package com.example.brightly;
+package com.example.brightly.Admin;
 
 import android.content.Context;
 import android.content.SharedPreferences;

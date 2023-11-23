@@ -1,6 +1,8 @@
-package com.example.brightly;
+package com.example.brightly.Admin;
 
 import android.util.Log;
+
+import com.example.brightly.Map.CurrentLocation;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;

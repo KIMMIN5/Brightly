@@ -1,5 +1,6 @@
-package com.example.brightly;
+package com.example.brightly.Map;
 
+import com.example.brightly.R;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import android.content.Context;
