@@ -1,7 +1,6 @@
 package com.example.brightly.Map;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -9,16 +8,10 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.util.Log;
-
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
 
 public class CurrentLocation {
 
@@ -29,12 +22,23 @@ public class CurrentLocation {
     private LatLng currentLatLng;
     private static final long MIN_TIME = 400;
     private static final float MIN_DISTANCE = 30;
-    private Marker currentLocationMarker;
+    private boolean isFirstLocationUpdate = true;
 
     public CurrentLocation(Context context, GoogleMap googleMap) {
         this.context = context;
         this.googleMap = googleMap;
         this.locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+    }
+
+    // 위치 업데이트 리스너 인터페이스 정의
+    public interface LocationUpdateListener {
+        void onLocationUpdated(LatLng newLocation);
+    }
+
+    private LocationUpdateListener locationUpdateListener;
+
+    public void setLocationUpdateListener(LocationUpdateListener listener) {
+        this.locationUpdateListener = listener;
     }
 
     public void initializeLocationListener() {
@@ -44,40 +48,29 @@ public class CurrentLocation {
                 if (googleMap != null) {
                     currentLatLng = new LatLng(location.getLatitude(), location.getLongitude());
                     Log.d(TAG, "Location updated: " + currentLatLng.toString());
-
-                    // 현재 위치 마커 추가 또는 업데이트
-                    if (currentLocationMarker == null) {
-                        //currentLocationMarker = googleMap.addMarker(new MarkerOptions()
-                                //.position(currentLatLng)
-                                //.title("현재 위치")
-                                //.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
-                    } else {
-                        currentLocationMarker.setPosition(currentLatLng);
+                    // 지도 카메라 이동
+                    googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 25)); // 또는 원하는 줌 레벨 설정
+                    // 최초 위치 변경 이벤트에서 지도의 카메라 업데이트 (단, 한 번만 실행)
+                    if (isFirstLocationUpdate) {
+                        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 25));
+                        isFirstLocationUpdate = false;
                     }
-
-                    // 사용자가 이동할 때 지도 카메라를 현재 위치로 이동
-                    googleMap.animateCamera(CameraUpdateFactory.newLatLng(currentLatLng));
                 } else {
                     Log.d(TAG, "GoogleMap is null");
                 }
             }
 
             @Override
-            public void onStatusChanged(String provider, int status, Bundle extras) {
-                Log.d(TAG, "onStatusChanged: Provider " + provider + " status: " + status);
-            }
+            public void onStatusChanged(String provider, int status, Bundle extras) { }
 
             @Override
-            public void onProviderEnabled(String provider) {
-                Log.d(TAG, "onProviderEnabled: Provider " + provider);
-            }
+            public void onProviderEnabled(String provider) { }
 
             @Override
-            public void onProviderDisabled(String provider) {
-                Log.d(TAG, "onProviderDisabled: Provider " + provider);
-            }
+            public void onProviderDisabled(String provider) { }
         };
 
+        // 위치 권한 확인 및 위치 업데이트 요청
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_TIME, MIN_DISTANCE, locationListener);
