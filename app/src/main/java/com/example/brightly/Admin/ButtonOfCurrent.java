@@ -20,13 +20,18 @@ public class ButtonOfCurrent {
     }
 
     public void addMarkerAtCurrentLocation() {
-        LatLng currentLatLng = currentLocation.getCurrentLatLng();
-        if (currentLatLng != null) {
-            mMap.addMarker(new MarkerOptions().position(currentLatLng).title("현재 위치"));
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15));
-            saveMarker.saveMarkerPosition(currentLatLng);
-        } else {
-            Log.d("ButtonOfCurrent", "Current location is null");
+        if (mMap != null && currentLocation != null) {
+            LatLng currentLatLng = currentLocation.getCurrentLatLng();
+            if (currentLatLng != null) {
+                // 현재 위치에 마커 추가
+                mMap.addMarker(new MarkerOptions().position(currentLatLng).title("현재 위치"));
+
+                // 현재 카메라 줌 레벨을 가져옵니다.
+                float currentZoom = mMap.getCameraPosition().zoom;
+
+                // 현재 위치로 카메라를 이동하되, 줌 레벨은 유지합니다.
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, currentZoom));
+            }
         }
     }
 }

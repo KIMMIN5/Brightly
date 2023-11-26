@@ -4,7 +4,10 @@ import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 
+import android.content.Context;
 import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
@@ -22,6 +25,7 @@ import com.example.brightly.R;
 import com.example.brightly.Admin.SaveMarker;
 import com.example.brightly.Admin.SharedPreferencesExporter;
 import com.example.brightly.databinding.BrightlyLayoutBinding;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.GoogleMap;
@@ -137,9 +141,22 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         // CreateMap 클래스를 사용하여 지도 초기화
         CreateMap createMap = new CreateMap(mMap);
 
-        // 현재 위치를 추적하는 객체 초기화
+        // 현재 위치 추적 객체 초기화
         currentLocation = new CurrentLocation(this, mMap);
         currentLocation.initializeLocationListener();
+
+        // 앱이 처음 시작될 때 사용자의 현재 위치를 가져오는 로직
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            mMap.setMyLocationEnabled(true);
+            mMap.getUiSettings().setMyLocationButtonEnabled(true);
+            LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+            Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            if (lastKnownLocation != null) {
+                LatLng userLatLng = new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude());
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLatLng, 30));
+            }
+        }
 
         // 현재 위치에 마커를 추가하는 버튼 객체 초기화
         buttonOfCurrent = new ButtonOfCurrent(currentLocation, mMap, saveMarker);

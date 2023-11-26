@@ -1,14 +1,29 @@
-/*import com.google.android.gms.maps.GoogleMap;
+/*
+import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.database.DatabaseReference;
 
-public class EventOfLamp implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
+import java.util.ArrayList;
+import java.util.List;
+
+public class EventOfLamp implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnCameraIdleListener {
     private GoogleMap mMap;
     private FirebaseDatabase database;
+    private List<Marker> streetlightMarkers = new ArrayList<>();
+    private static final float MIN_ZOOM_LEVEL_FOR_MARKERS = 15.0f; // 마커를 표시할 최소 줌 레벨 설정
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
         this.mMap = googleMap;
         mMap.setOnMarkerClickListener(this);
+        mMap.setOnCameraIdleListener(this);
         loadStreetlightData();
     }
 
@@ -24,13 +39,12 @@ public class EventOfLamp implements OnMapReadyCallback, GoogleMap.OnMarkerClickL
                     LatLng position = new LatLng(light.latitude, light.longitude);
 
                     MarkerOptions markerOptions = new MarkerOptions().position(position);
-                    if (light.isFaulty == 1) {
-                        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GRAY));
-                    } else {
-                        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
-                    }
-                    mMap.addMarker(markerOptions).setTag(light);
+                    // 마커 옵션 설정
+                    Marker marker = mMap.addMarker(markerOptions);
+                    marker.setTag(light);
+                    streetlightMarkers.add(marker);
                 }
+                updateMarkerVisibility();
             }
 
             @Override
@@ -40,12 +54,22 @@ public class EventOfLamp implements OnMapReadyCallback, GoogleMap.OnMarkerClickL
         });
     }
 
+    private void updateMarkerVisibility() {
+        float zoomLevel = mMap.getCameraPosition().zoom;
+        for (Marker marker : streetlightMarkers) {
+            marker.setVisible(zoomLevel >= MIN_ZOOM_LEVEL_FOR_MARKERS);
+        }
+    }
+
     @Override
     public boolean onMarkerClick(Marker marker) {
-        Streetlight light = (Streetlight) marker.getTag();
-        // 여기에서 팝업 또는 대화상자를 표시하여 고장 여부와 신고 버튼을 보여줍니다.
-        // 예를 들어, AlertDialog를 사용하여 고장 여부를 표시하고 신고 버튼을 제공할 수 있습니다.
+        // 마커 클릭 이벤트 처리
         return true;
+    }
+
+    @Override
+    public void onCameraIdle() {
+        updateMarkerVisibility();
     }
 
     private class Streetlight {
@@ -56,4 +80,5 @@ public class EventOfLamp implements OnMapReadyCallback, GoogleMap.OnMarkerClickL
 
         // 필요한 생성자, getter, setter 추가
     }
-}*/
+}
+*/

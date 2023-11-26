@@ -37,29 +37,26 @@ public class CurrentLocation {
         this.locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
     }
 
-    // 이 메소드는 위치 권한이 부여된 후에 호출되어야 합니다.
     public void initializeLocationListener() {
         LocationListener locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
-                // 여기에서 googleMap이 null인지 확인
                 if (googleMap != null) {
-                    if (location != null) {
-                        currentLatLng = new LatLng(location.getLatitude(), location.getLongitude());
-                        Log.d(TAG, "Location updated: " + currentLatLng.toString());
-                        if (currentLocationMarker == null) {
-                            currentLocationMarker = googleMap.addMarker(new MarkerOptions()
-                                    .position(currentLatLng)
-                                    .title("현재 위치")
-                                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
-                        } else {
-                            currentLocationMarker.setPosition(currentLatLng);
-                        }
+                    currentLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+                    Log.d(TAG, "Location updated: " + currentLatLng.toString());
 
-                        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15));
+                    // 현재 위치 마커 추가 또는 업데이트
+                    if (currentLocationMarker == null) {
+                        //currentLocationMarker = googleMap.addMarker(new MarkerOptions()
+                                //.position(currentLatLng)
+                                //.title("현재 위치")
+                                //.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
                     } else {
-                        Log.d(TAG, "Location is null");
+                        currentLocationMarker.setPosition(currentLatLng);
                     }
+
+                    // 사용자가 이동할 때 지도 카메라를 현재 위치로 이동
+                    googleMap.animateCamera(CameraUpdateFactory.newLatLng(currentLatLng));
                 } else {
                     Log.d(TAG, "GoogleMap is null");
                 }
