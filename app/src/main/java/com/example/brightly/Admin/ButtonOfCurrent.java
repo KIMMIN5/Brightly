@@ -26,6 +26,9 @@ public class ButtonOfCurrent {
                 // 현재 위치에 마커 추가
                 mMap.addMarker(new MarkerOptions().position(currentLatLng).title("현재 위치"));
 
+                // SaveMarker 클래스를 사용하여 마커 위치 저장
+                saveMarker.saveMarkerPosition(currentLatLng);
+
                 // 현재 카메라 줌 레벨을 가져옵니다.
                 float currentZoom = mMap.getCameraPosition().zoom;
 
