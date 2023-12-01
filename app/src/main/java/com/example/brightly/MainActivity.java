@@ -13,6 +13,7 @@ import android.widget.TextView;
 import android.Manifest;
 
 import com.example.brightly.Admin.ButtonOfCurrent;
+import com.example.brightly.Admin.StreetLightManager;
 import com.example.brightly.Map.CreateMap;
 import com.example.brightly.Map.CurrentLocation;
 import com.example.brightly.Map.DayAndNight;
@@ -45,6 +46,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     private Marker selectedMarker;
     private Button deleteMarkerButton;
     private Button exportButton;
+    private StreetLightManager streetLightManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -130,6 +132,10 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             tailTextView.setText("Lat: " + latLng.latitude + ", Lng: " + latLng.longitude);
             return false;
         });
+
+
+        streetLightManager = new StreetLightManager(mMap); // 여기에서 mMap 전달
+        streetLightManager.loadStreetLights();
     }
 
     @Override
@@ -151,3 +157,4 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         SharedPreferencesExporter.exportSharedPreferences(this, "MarkerPref");
     }
 }
+

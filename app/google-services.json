@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "17835185552",
+    "firebase_url": "https://brightly-d1242-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "brightly-d1242",
+    "storage_bucket": "brightly-d1242.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:17835185552:android:b63c3b0712a17977d24f15",
+        "android_client_info": {
+          "package_name": "com.example.brightly"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDpGLDX4E9p1t_gm_7Qb9SqINS8vmvlqHk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
