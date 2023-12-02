@@ -3,7 +3,6 @@ package com.example.brightly.User;
 import android.content.Context;
 import android.util.Log;
 import android.widget.Toast;
-
 import com.example.brightly.Admin.DataFetcher;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -11,17 +10,18 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
-public class EventOfLamp implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnCameraIdleListener {
-    private GoogleMap mMap;
-    private Context context; // Context 추가
-    private List<Marker> streetlightMarkers = new ArrayList<>();
+public class EventOfLamp implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnCameraIdleListener, DataFetcher.DataChangeListener {
     private static final float MIN_ZOOM_LEVEL_FOR_MARKERS = 15.0f;
+    private GoogleMap mMap;
+    private Context context;
+    private HashMap<LatLng, Marker> markerMap = new HashMap<>();
 
-    // Context를 포함한 생성자
     public EventOfLamp(Context context) {
         this.context = context;
+        DataFetcher.getInstance().addDataChangeListener(this);
     }
 
     @Override
@@ -29,31 +29,70 @@ public class EventOfLamp implements OnMapReadyCallback, GoogleMap.OnMarkerClickL
         this.mMap = googleMap;
         mMap.setOnMarkerClickListener(this);
         mMap.setOnCameraIdleListener(this);
-        loadStreetlightData();
+        // Data loading is now handled in onDataLoadComplete.
     }
 
-    private void loadStreetlightData() {
-        DataFetcher dataFetcher = DataFetcher.getInstance(); // 싱글턴 인스턴스 사용
-        List<DataFetcher.Streetlight> streetlights = dataFetcher.getStreetlights();
-
+    @Override
+    public void onDataChanged(List<DataFetcher.Streetlight> streetlights) {
+        // Update or create markers based on the new data
         for (DataFetcher.Streetlight light : streetlights) {
             LatLng position = new LatLng(light.getLatitude(), light.getLongitude());
-            MarkerOptions markerOptions = new MarkerOptions().position(position).title("Street Light");
-            Marker marker = mMap.addMarker(markerOptions);
-            marker.setTag(light);
-            streetlightMarkers.add(marker);
+            Marker marker = markerMap.get(position);
+
+            if (marker == null) {
+                // Create a new marker if it doesn't exist
+                MarkerOptions markerOptions = new MarkerOptions().position(position).title("Street Light");
+                marker = mMap.addMarker(markerOptions);
+                marker.setTag(light);
+                markerMap.put(position, marker);
+            } else {
+                // Update existing marker's tag
+                marker.setTag(light);
+            }
+        }
+
+        // Remove markers if they are not in the new data
+        ArrayList<LatLng> keysToRemove = new ArrayList<>();
+        for (LatLng key : markerMap.keySet()) {
+            boolean found = false;
+            for (DataFetcher.Streetlight light : streetlights) {
+                if (new LatLng(light.getLatitude(), light.getLongitude()).equals(key)) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                keysToRemove.add(key);
+            }
+        }
+
+        for (LatLng key : keysToRemove) {
+            Marker marker = markerMap.get(key);
+            if (marker != null) {
+                marker.remove();
+                markerMap.remove(key);
+            }
         }
     }
 
     @Override
+    public void onDataLoadComplete() {
+        loadStreetlightData();
+    }
+
+    private void loadStreetlightData() {
+        // Method is now simplified, as marker management is handled in onDataChanged
+    }
+
+    @Override
     public boolean onMarkerClick(Marker marker) {
-        Streetlight selectedLight = (Streetlight) marker.getTag();
-        if (selectedLight != null) {
-            String status = selectedLight.isFaulty() ? "Faulty" : "Operational";
+        Object tag = marker.getTag();
+        if (tag instanceof DataFetcher.Streetlight) {
+            DataFetcher.Streetlight selectedLight = (DataFetcher.Streetlight) tag;
+            String status = selectedLight.getIsFaulty() == 1 ? "Faulty" : "Operational";
             Toast.makeText(context, "Street Light Status: " + status, Toast.LENGTH_SHORT).show();
-            Log.d("EventOfLamp", "Marker clicked: " + marker.getPosition().toString() + ", Status: " + status);
         } else {
-            Log.d("EventOfLamp", "Marker clicked but no data found.");
+            Log.d("EventOfLamp", "Marker clicked but tag is not Streetlight or is null.");
         }
         return true;
     }
@@ -65,41 +104,8 @@ public class EventOfLamp implements OnMapReadyCallback, GoogleMap.OnMarkerClickL
 
     private void updateMarkerVisibility() {
         float zoomLevel = mMap.getCameraPosition().zoom;
-        for (Marker marker : streetlightMarkers) {
+        for (Marker marker : markerMap.values()) {
             marker.setVisible(zoomLevel >= MIN_ZOOM_LEVEL_FOR_MARKERS);
         }
-    }
-
-    public class Streetlight {
-        private int isFaulty;
-        private int isReport;
-        private double latitude;
-        private double longitude;
-
-        // 생성자, getter, setter 추가
-        public Streetlight(int isFaulty, int isReport, double latitude, double longitude) {
-            this.isFaulty = isFaulty;
-            this.isReport = isReport;
-            this.latitude = latitude;
-            this.longitude = longitude;
-        }
-
-        public boolean isFaulty() {
-            return isFaulty == 1;
-        }
-
-        public boolean isReport() {
-            return isReport == 1;
-        }
-
-        public double getLatitude() {
-            return latitude;
-        }
-
-        public double getLongitude() {
-            return longitude;
-        }
-
-        // 추가 필요한 메소드
     }
 }

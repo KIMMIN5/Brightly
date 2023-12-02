@@ -1,5 +1,7 @@
 package com.example.brightly.Admin;
 
+import android.util.Log;
+
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.LatLng;
@@ -26,6 +28,13 @@ public class LampManager implements DataFetcher.DataChangeListener {
         for (Streetlight light : streetlights) {
             addMarkerToMap(new LatLng(light.getLatitude(), light.getLongitude()), light.getIsFaulty() == 1);
         }
+    }
+
+    // DataFetcher.DataChangeListener 인터페이스의 메소드 구현
+    @Override
+    public void onDataLoadComplete() {
+        // 데이터 로딩이 완료된 후 필요한 작업을 여기에 구현합니다.
+        Log.d("LampManager", "Data loading is complete.");
     }
 
     private void addMarkerToMap(LatLng latLng, boolean isFaulty) {

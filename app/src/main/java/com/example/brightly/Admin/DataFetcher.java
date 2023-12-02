@@ -1,5 +1,7 @@
 package com.example.brightly.Admin;
 
+import android.util.Log;
+
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
@@ -17,6 +19,7 @@ public class DataFetcher {
 
     public interface DataChangeListener {
         void onDataChanged(List<Streetlight> streetlights);
+        void onDataLoadComplete();
     }
 
     public DataFetcher() {
@@ -47,18 +50,21 @@ public class DataFetcher {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 streetlights.clear();
+                Log.d("DataFetcher", "Loading streetlight data from Firebase...");
                 for (DataSnapshot lightSnapshot : dataSnapshot.getChildren()) {
                     Streetlight light = lightSnapshot.getValue(Streetlight.class);
                     if (light != null) {
                         streetlights.add(light);
+                        Log.d("DataFetcher", "Loaded streetlight: " + light.toString());
                     }
                 }
                 notifyDataChanged();
+                notifyDataLoadComplete();
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-                // Log or handle the databaseError
+                Log.e("DataFetcher", "Database error: " + databaseError.getMessage());
             }
         });
     }
@@ -66,6 +72,12 @@ public class DataFetcher {
     private void notifyDataChanged() {
         for (DataChangeListener listener : listeners) {
             listener.onDataChanged(streetlights);
+        }
+    }
+
+    private void notifyDataLoadComplete() {
+        for (DataChangeListener listener : listeners) {
+            listener.onDataLoadComplete();
         }
     }
 
@@ -114,6 +126,16 @@ public class DataFetcher {
 
         public void setLongitude(double longitude) {
             this.longitude = longitude;
+        }
+
+        @Override
+        public String toString() {
+            return "Streetlight{" +
+                    "isFaulty=" + isFaulty +
+                    ", isReport=" + isReport +
+                    ", latitude=" + latitude +
+                    ", longitude=" + longitude +
+                    '}';
         }
     }
 }
