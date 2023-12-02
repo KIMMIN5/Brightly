@@ -7,19 +7,18 @@ import androidx.fragment.app.FragmentActivity;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.Manifest;
 
 import com.example.brightly.Admin.ButtonOfCurrent;
-import com.example.brightly.Admin.StreetLightManager;
+import com.example.brightly.Admin.LampManager;
 import com.example.brightly.Map.CreateMap;
 import com.example.brightly.Map.CurrentLocation;
 import com.example.brightly.Map.DayAndNight;
 import com.example.brightly.Map.LimitedBoundary;
+import com.example.brightly.User.EventOfLamp;
 import com.example.brightly.User.Permissions;
-import com.example.brightly.R;
 import com.example.brightly.Admin.SaveMarker;
 import com.example.brightly.Admin.SharedPreferencesExporter;
 import com.example.brightly.databinding.BrightlyLayoutBinding;
@@ -46,7 +45,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     private Marker selectedMarker;
     private Button deleteMarkerButton;
     private Button exportButton;
-    private StreetLightManager streetLightManager;
+    private LampManager lampManager;
+    private EventOfLamp eventOfLamp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -133,9 +133,12 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             return false;
         });
 
-
-        streetLightManager = new StreetLightManager(mMap); // 여기에서 mMap 전달
-        streetLightManager.loadStreetLights();
+        // LampManager 및 EventOfLamp 설정
+        lampManager = new LampManager(mMap);
+        eventOfLamp = new EventOfLamp(this);
+        mMap.setOnMarkerClickListener(eventOfLamp);
+        mMap.setOnCameraIdleListener(eventOfLamp);
+        eventOfLamp.onMapReady(mMap); // EventOfLamp에 지도 설정
     }
 
     @Override
@@ -157,4 +160,3 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         SharedPreferencesExporter.exportSharedPreferences(this, "MarkerPref");
     }
 }
-

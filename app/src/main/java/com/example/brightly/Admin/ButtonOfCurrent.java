@@ -5,6 +5,7 @@ import android.util.Log;
 import com.example.brightly.Map.CurrentLocation;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
@@ -24,7 +25,7 @@ public class ButtonOfCurrent {
             LatLng currentLatLng = currentLocation.getCurrentLatLng();
             if (currentLatLng != null) {
                 // 현재 위치에 마커 추가
-                mMap.addMarker(new MarkerOptions().position(currentLatLng).title("현재 위치"));
+                mMap.addMarker(new MarkerOptions().position(currentLatLng).title("현재 위치")).setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
 
                 // SaveMarker 클래스를 사용하여 마커 위치 저장
                 saveMarker.saveMarkerPosition(currentLatLng);
