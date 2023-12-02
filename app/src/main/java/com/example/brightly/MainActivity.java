@@ -12,6 +12,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.Manifest;
 
+import com.example.brightly.Admin.BuildingManager;
 import com.example.brightly.Admin.ButtonOfCurrent;
 import com.example.brightly.Admin.StreetLightManager;
 import com.example.brightly.Map.CreateMap;
@@ -47,6 +48,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     private Button deleteMarkerButton;
     private Button exportButton;
     private StreetLightManager streetLightManager;
+    private BuildingManager buildingManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -136,6 +138,9 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
         streetLightManager = new StreetLightManager(mMap); // 여기에서 mMap 전달
         streetLightManager.loadStreetLights();
+
+        buildingManager = new BuildingManager(mMap);
+        buildingManager.loadBuildings();
     }
 
     @Override
