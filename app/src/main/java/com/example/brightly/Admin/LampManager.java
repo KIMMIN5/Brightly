@@ -1,42 +1,75 @@
 package com.example.brightly.Admin;
 
+import android.util.Log;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.LatLng;
-
 import com.example.brightly.Admin.DataFetcher;
 import com.example.brightly.Admin.DataFetcher.Streetlight;
-
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public class LampManager implements DataFetcher.DataChangeListener {
     private GoogleMap mMap;
     private DataFetcher dataFetcher;
+    private HashMap<String, Marker> existingMarkers = new HashMap<>();
 
     public LampManager(GoogleMap map) {
         this.mMap = map;
         this.dataFetcher = DataFetcher.getInstance();
         dataFetcher.addDataChangeListener(this);
-        dataFetcher.loadStreetlightData(); // 데이터 로딩을 여기에서 초기화합니다.
+        dataFetcher.loadStreetlightData();
     }
 
     @Override
-    public void onDataChanged(List<Streetlight> streetlights) {
-        // 데이터가 변경될 때 실행되는 콜백
-        for (Streetlight light : streetlights) {
-            addMarkerToMap(new LatLng(light.getLatitude(), light.getLongitude()), light.getIsFaulty() == 1);
+    public void onDataChanged(Map<String, Streetlight> updatedLights) {
+        for (Map.Entry<String, Streetlight> entry : updatedLights.entrySet()) {
+            String id = entry.getKey();
+            Streetlight light = entry.getValue();
+            LatLng position = new LatLng(light.getLatitude(), light.getLongitude());
+            Marker marker = existingMarkers.get(id);
+
+            if (marker != null) {
+                updateMarkerColorAndTag(marker, light);
+            } else {
+                addMarkerToMap(id, position, light);
+            }
         }
     }
 
-    private void addMarkerToMap(LatLng latLng, boolean isFaulty) {
+    @Override
+    public void onDataLoadComplete() {
+
+    }
+
+    private void updateMarkerColorAndTag(Marker marker, Streetlight light) {
+        if (light.getIsFaulty()) {
+            marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
+        } else {
+            marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
+        }
+        marker.setTag(light);
+    }
+
+    private void addMarkerToMap(String id, LatLng latLng, Streetlight light) {
+        if (existingMarkers.containsKey(id)) {
+            return;
+        }
         MarkerOptions markerOptions = new MarkerOptions()
                 .position(latLng)
-                .title(isFaulty ? "Faulty Street Light" : "Street Light");
-
-        if (mMap != null) {
-            mMap.addMarker(markerOptions);
+                .title(light.getIsFaulty() ? "Faulty Street Light" : "Street Light");
+        if (light.getIsFaulty()) {
+            markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
+        } else {
+            markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
         }
+        Marker marker = mMap.addMarker(markerOptions);
+        existingMarkers.put(id, marker);
     }
 
-    // 필요한 추가 메소드 ...
+    public HashMap<String, Marker> getExistingMarkers() {
+        return existingMarkers;
+    }
 }

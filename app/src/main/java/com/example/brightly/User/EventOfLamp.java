@@ -1,27 +1,27 @@
 package com.example.brightly.User;
 
+import android.app.Activity;
 import android.content.Context;
 import android.util.Log;
-import android.widget.Toast;
-
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
 import com.example.brightly.Admin.DataFetcher;
+import com.example.brightly.Admin.LampManager;
+import com.example.brightly.R;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
-import java.util.ArrayList;
-import java.util.List;
 
 public class EventOfLamp implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnCameraIdleListener {
+    private static final float MIN_ZOOM_LEVEL_FOR_MARKERS = 17.0f;
     private GoogleMap mMap;
-    private Context context; // Context 추가
-    private List<Marker> streetlightMarkers = new ArrayList<>();
-    private static final float MIN_ZOOM_LEVEL_FOR_MARKERS = 15.0f;
+    private Context context;
+    private LampManager lampManager;
 
-    // Context를 포함한 생성자
-    public EventOfLamp(Context context) {
+    public EventOfLamp(Context context, LampManager lampManager) {
         this.context = context;
+        this.lampManager = lampManager;
     }
 
     @Override
@@ -29,77 +29,33 @@ public class EventOfLamp implements OnMapReadyCallback, GoogleMap.OnMarkerClickL
         this.mMap = googleMap;
         mMap.setOnMarkerClickListener(this);
         mMap.setOnCameraIdleListener(this);
-        loadStreetlightData();
-    }
-
-    private void loadStreetlightData() {
-        DataFetcher dataFetcher = DataFetcher.getInstance(); // 싱글턴 인스턴스 사용
-        List<DataFetcher.Streetlight> streetlights = dataFetcher.getStreetlights();
-
-        for (DataFetcher.Streetlight light : streetlights) {
-            LatLng position = new LatLng(light.getLatitude(), light.getLongitude());
-            MarkerOptions markerOptions = new MarkerOptions().position(position).title("Street Light");
-            Marker marker = mMap.addMarker(markerOptions);
-            marker.setTag(light);
-            streetlightMarkers.add(marker);
-        }
     }
 
     @Override
     public boolean onMarkerClick(Marker marker) {
-        Streetlight selectedLight = (Streetlight) marker.getTag();
-        if (selectedLight != null) {
-            String status = selectedLight.isFaulty() ? "Faulty" : "Operational";
-            Toast.makeText(context, "Street Light Status: " + status, Toast.LENGTH_SHORT).show();
-            Log.d("EventOfLamp", "Marker clicked: " + marker.getPosition().toString() + ", Status: " + status);
-        } else {
-            Log.d("EventOfLamp", "Marker clicked but no data found.");
+        Object tag = marker.getTag();
+        if (tag instanceof DataFetcher.Streetlight) {
+            DataFetcher.Streetlight selectedLight = (DataFetcher.Streetlight) tag;
+            String status = selectedLight.getIsFaulty() ? "고장" : "작동중";
+
+            TextView tailTextView = ((Activity)context).findViewById(R.id.tail_text_view);
+            tailTextView.setText("가로등: " + status);
+
+            Button reportButton = ((Activity)context).findViewById(R.id.report_button);
+            reportButton.setVisibility(View.VISIBLE);
+            reportButton.setOnClickListener(v -> {
+                // 고장 신고 로직 구현
+            });
         }
         return true;
     }
 
     @Override
     public void onCameraIdle() {
-        updateMarkerVisibility();
-    }
-
-    private void updateMarkerVisibility() {
         float zoomLevel = mMap.getCameraPosition().zoom;
-        for (Marker marker : streetlightMarkers) {
-            marker.setVisible(zoomLevel >= MIN_ZOOM_LEVEL_FOR_MARKERS);
+        boolean shouldMarkersBeVisible = zoomLevel >= MIN_ZOOM_LEVEL_FOR_MARKERS;
+        for (Marker marker : lampManager.getExistingMarkers().values()) {
+            marker.setVisible(shouldMarkersBeVisible);
         }
-    }
-
-    public class Streetlight {
-        private int isFaulty;
-        private int isReport;
-        private double latitude;
-        private double longitude;
-
-        // 생성자, getter, setter 추가
-        public Streetlight(int isFaulty, int isReport, double latitude, double longitude) {
-            this.isFaulty = isFaulty;
-            this.isReport = isReport;
-            this.latitude = latitude;
-            this.longitude = longitude;
-        }
-
-        public boolean isFaulty() {
-            return isFaulty == 1;
-        }
-
-        public boolean isReport() {
-            return isReport == 1;
-        }
-
-        public double getLatitude() {
-            return latitude;
-        }
-
-        public double getLongitude() {
-            return longitude;
-        }
-
-        // 추가 필요한 메소드
     }
 }

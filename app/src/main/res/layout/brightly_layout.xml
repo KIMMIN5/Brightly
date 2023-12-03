@@ -24,14 +24,29 @@
             android:layout_weight="1" />
 
         <!-- Tail 영역 -->
-        <TextView
-            android:id="@+id/tail_text_view"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="여기에 정보 표시"
+            android:orientation="horizontal"
             android:gravity="center"
-            android:background="#DDD"
-            android:padding="16dp"/> <!--높이를 조절 -->
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/tail_text_view"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="여기에 정보 표시"
+                android:gravity="center"
+                android:background="#DDD" />
+
+            <Button
+                android:id="@+id/report_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="고장 신고"
+                android:visibility="gone" />
+        </LinearLayout>
 
         <Button
             android:id="@+id/buttonCurrentLocation"
@@ -53,7 +68,6 @@
             android:layout_height="wrap_content"
             android:text="마커파일 내보내기"
             android:layout_gravity="center_horizontal" />
-
     </LinearLayout>
 
 </layout>

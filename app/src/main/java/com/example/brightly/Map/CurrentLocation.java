@@ -47,16 +47,13 @@ public class CurrentLocation {
             public void onLocationChanged(Location location) {
                 if (googleMap != null) {
                     currentLatLng = new LatLng(location.getLatitude(), location.getLongitude());
-                    Log.d(TAG, "Location updated: " + currentLatLng.toString());
                     // 지도 카메라 이동
-                    googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 25)); // 또는 원하는 줌 레벨 설정
+                    googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 17)); // 또는 원하는 줌 레벨 설정
                     // 최초 위치 변경 이벤트에서 지도의 카메라 업데이트 (단, 한 번만 실행)
                     if (isFirstLocationUpdate) {
-                        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 25));
+                        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 17));
                         isFirstLocationUpdate = false;
                     }
-                } else {
-                    Log.d(TAG, "GoogleMap is null");
                 }
             }
 
@@ -74,8 +71,6 @@ public class CurrentLocation {
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_TIME, MIN_DISTANCE, locationListener);
-        } else {
-            Log.d(TAG, "Location permission not granted");
         }
     }
 

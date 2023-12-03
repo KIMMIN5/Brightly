@@ -44,7 +44,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     private TextView tailTextView;
     private Marker selectedMarker;
     private Button deleteMarkerButton;
-    private Button exportButton;
+    private Button exportButton;;
     private LampManager lampManager;
     private EventOfLamp eventOfLamp;
 
@@ -135,7 +135,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
         // LampManager 및 EventOfLamp 설정
         lampManager = new LampManager(mMap);
-        eventOfLamp = new EventOfLamp(this);
+        eventOfLamp = new EventOfLamp(this, lampManager);
         mMap.setOnMarkerClickListener(eventOfLamp);
         mMap.setOnCameraIdleListener(eventOfLamp);
         eventOfLamp.onMapReady(mMap); // EventOfLamp에 지도 설정
