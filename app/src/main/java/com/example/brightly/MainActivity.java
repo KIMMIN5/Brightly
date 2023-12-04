@@ -73,9 +73,11 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 LatLng markerPosition = selectedMarker.getPosition();
                 selectedMarker.remove();
                 saveMarker.removeMarkerPosition(markerPosition);
+                Log.d("MainActivity", "Marker deleted: " + markerPosition);
                 selectedMarker = null;
             }
         });
+
 
         exportButton = findViewById(R.id.export_button);
         exportButton.setOnClickListener(v -> exportSharedPreferences());
@@ -130,6 +132,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             selectedMarker = marker;
             LatLng latLng = marker.getPosition();
             tailTextView.setText("Lat: " + latLng.latitude + ", Lng: " + latLng.longitude);
+            Log.d("MainActivity", "Marker selected: " + latLng);
             return false;
         });
 
@@ -158,5 +161,9 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void exportSharedPreferences() {
         SharedPreferencesExporter.exportSharedPreferences(this, "MarkerPref");
+    }
+
+    public void setSelectedMarker(Marker marker) {
+        this.selectedMarker = marker;
     }
 }

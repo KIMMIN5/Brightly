@@ -20,6 +20,7 @@ public class SaveMarker {
         Set<String> currentMarkers = new HashSet<>(sharedPreferences.getStringSet("markers", new HashSet<>()));
         String latLngString = latLng.latitude + "," + latLng.longitude;
         currentMarkers.add(latLngString);
+        Log.d("SaveMarker", "Saving marker position: " + latLngString);
         editor.putStringSet("markers", currentMarkers);
         editor.apply();
     }
@@ -29,6 +30,7 @@ public class SaveMarker {
         String latLngToRemoveString = latLngToRemove.latitude + "," + latLngToRemove.longitude;
         currentMarkers.remove(latLngToRemoveString);
         SharedPreferences.Editor editor = sharedPreferences.edit();
+        Log.d("SaveMarker", "Removing marker position: " + latLngToRemoveString);
         editor.putStringSet("markers", currentMarkers);
         editor.apply();
     }
@@ -43,6 +45,7 @@ public class SaveMarker {
                 double latitude = Double.parseDouble(parts[0]);
                 double longitude = Double.parseDouble(parts[1]);
                 latLngs.add(new LatLng(latitude, longitude));
+                Log.d("SaveMarker", "Loading marker position: " + markerString);
             } catch (NumberFormatException e) {
                 Log.e("SaveMarker", "Error parsing marker position: " + markerString, e);
             }

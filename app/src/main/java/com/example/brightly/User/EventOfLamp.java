@@ -8,9 +8,11 @@ import android.widget.Button;
 import android.widget.TextView;
 import com.example.brightly.Admin.DataFetcher;
 import com.example.brightly.Admin.LampManager;
+import com.example.brightly.MainActivity;
 import com.example.brightly.R;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.Marker;
 
 public class EventOfLamp implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnCameraIdleListener {
@@ -18,6 +20,7 @@ public class EventOfLamp implements OnMapReadyCallback, GoogleMap.OnMarkerClickL
     private GoogleMap mMap;
     private Context context;
     private LampManager lampManager;
+    private Marker lastSelectedMarker = null; // 마지막으로 선택된 마커 추적
 
     public EventOfLamp(Context context, LampManager lampManager) {
         this.context = context;
@@ -29,10 +32,35 @@ public class EventOfLamp implements OnMapReadyCallback, GoogleMap.OnMarkerClickL
         this.mMap = googleMap;
         mMap.setOnMarkerClickListener(this);
         mMap.setOnCameraIdleListener(this);
+
+        // 지도 클릭 리스너 추가
+        googleMap.setOnMapClickListener(latLng -> {
+            if (lastSelectedMarker != null) {
+                resetMarkerIcon(lastSelectedMarker);
+                lastSelectedMarker = null;
+            }
+        });
     }
 
     @Override
     public boolean onMarkerClick(Marker marker) {
+        // 마커 선택 처리
+        selectMarker(marker);
+
+        // MainActivity의 selectedMarker 업데이트
+        if(context instanceof MainActivity) {
+            ((MainActivity) context).setSelectedMarker(marker);
+        }
+
+        // 이전 마커의 아이콘을 초기 상태로 복원
+        if (lastSelectedMarker != null && !lastSelectedMarker.equals(marker)) {
+            resetMarkerIcon(lastSelectedMarker);
+        }
+
+        // 선택된 마커의 아이콘 변경
+        marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE));
+        lastSelectedMarker = marker;
+
         Object tag = marker.getTag();
         if (tag instanceof DataFetcher.Streetlight) {
             DataFetcher.Streetlight selectedLight = (DataFetcher.Streetlight) tag;
@@ -47,6 +75,7 @@ public class EventOfLamp implements OnMapReadyCallback, GoogleMap.OnMarkerClickL
                 // 고장 신고 로직 구현
             });
         }
+
         return true;
     }
 
@@ -57,5 +86,28 @@ public class EventOfLamp implements OnMapReadyCallback, GoogleMap.OnMarkerClickL
         for (Marker marker : lampManager.getExistingMarkers().values()) {
             marker.setVisible(shouldMarkersBeVisible);
         }
+    }
+
+    // 마커 아이콘을 초기 상태로 복원하는 메소드
+    private void resetMarkerIcon(Marker marker) {
+        if (marker.getTag() instanceof DataFetcher.Streetlight) {
+            DataFetcher.Streetlight light = (DataFetcher.Streetlight) marker.getTag();
+            if (light.getIsFaulty()) {
+                // 고장난 가로등 색상 설정
+                marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+            } else {
+                // 정상 가로등 색상 설정
+                marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
+            }
+        }
+    }
+
+    // 마커 선택 시 아이콘 변경
+    private void selectMarker(Marker marker) {
+        if (lastSelectedMarker != null && !lastSelectedMarker.equals(marker)) {
+            resetMarkerIcon(lastSelectedMarker);
+        }
+        marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE));
+        lastSelectedMarker = marker;
     }
 }
