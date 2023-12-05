@@ -31,14 +31,6 @@
             android:gravity="center"
             android:padding="16dp">
 
-            <TextView
-                android:id="@+id/tail_text_view"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="여기에 정보 표시"
-                android:gravity="center"
-                android:background="#DDD" />
 
             <TextView
                 android:id="@+id/status_text_view"
@@ -46,7 +38,8 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Status"
-                android:visibility="visible" />
+                android:visibility="gone"
+                android:background="#000" />
 
             <TextView
                 android:id="@+id/report_text_view"
@@ -54,7 +47,8 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Report"
-                android:visibility="visible" />
+                android:visibility="gone"
+                android:background="#000" />
 
             <Button
                 android:id="@+id/report_button"

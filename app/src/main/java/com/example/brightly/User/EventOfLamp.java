@@ -1,8 +1,8 @@
 package com.example.brightly.User;
 
-<<<<<<< HEAD
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Color;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -23,9 +23,12 @@ public class EventOfLamp implements OnMapReadyCallback, GoogleMap.OnMarkerClickL
     private Context context;
     private LampManager lampManager;
     private Marker lastSelectedMarker = null; // 마지막으로 선택된 마커 추적
+    private MainActivity mainActivity;
 
     public EventOfLamp(Context context, LampManager lampManager) {
-        this.context = context;
+        if (context instanceof MainActivity) {
+            this.mainActivity = (MainActivity) context;
+        }
         this.lampManager = lampManager;
     }
 
@@ -40,6 +43,25 @@ public class EventOfLamp implements OnMapReadyCallback, GoogleMap.OnMarkerClickL
     @Override
     public boolean onMarkerClick(Marker marker) {
         if (marker.getTag() instanceof DataFetcher.Streetlight) {
+            DataFetcher.Streetlight selectedLight = (DataFetcher.Streetlight) marker.getTag();
+
+            // 고장 및 신고 상태에 따른 텍스트와 색상 설정
+            String statusText = selectedLight.getIsFaulty() ? "고장" : "정상";
+            int statusColor = selectedLight.getIsFaulty() ? Color.RED : Color.GREEN;
+            String reportText = selectedLight.getIsReport() ? "신고" : "미신고";
+            int reportColor = selectedLight.getIsReport() ? Color.RED : Color.GREEN;
+
+            // 텍스트뷰에 상태 표시
+            TextView statusTextView = mainActivity.findViewById(R.id.status_text_view);
+            statusTextView.setText("상태: " + statusText);
+            statusTextView.setTextColor(statusColor);
+
+            // 텍스트뷰에 신고 여부 표시
+            TextView reportTextView = mainActivity.findViewById(R.id.report_text_view);
+            reportTextView.setText("신고 여부: " + reportText);
+            reportTextView.setTextColor(reportColor);
+
+
             // 마커 선택 처리
             selectMarker(marker);
 
@@ -57,24 +79,11 @@ public class EventOfLamp implements OnMapReadyCallback, GoogleMap.OnMarkerClickL
             marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE));
             lastSelectedMarker = marker;
 
-            Object tag = marker.getTag();
-            if (tag instanceof DataFetcher.Streetlight) {
-                DataFetcher.Streetlight selectedLight = (DataFetcher.Streetlight) tag;
-                String status = selectedLight.getIsFaulty() ? "고장" : "작동중";
-
-                TextView tailTextView = ((Activity) context).findViewById(R.id.tail_text_view);
-                tailTextView.setText("가로등: " + status);
-
-                Button reportButton = ((Activity) context).findViewById(R.id.report_button);
-                reportButton.setVisibility(View.VISIBLE);
-                reportButton.setOnClickListener(v -> {
-                    // 고장 신고 로직 구현
-                });
-            }
+            // 가로등 마커 클릭 시 UI 요소 표시
+            showLayout();
 
             return true;
-        }
-        else {
+        } else {
             // 가로등 마커가 아닐 경우
 
             // 선택 해제 처리
@@ -84,11 +93,7 @@ public class EventOfLamp implements OnMapReadyCallback, GoogleMap.OnMarkerClickL
             }
 
             // UI 요소 숨기기
-            TextView tailTextView = ((Activity)context).findViewById(R.id.tail_text_view);
-            tailTextView.setText("");
-
-            Button reportButton = ((Activity)context).findViewById(R.id.report_button);
-            reportButton.setVisibility(View.GONE);
+            hideLayout();
 
             return false; // 이벤트 미처리 (기본 동작 수행)
         }
@@ -129,20 +134,33 @@ public class EventOfLamp implements OnMapReadyCallback, GoogleMap.OnMarkerClickL
 
     @Override
     public void onMapClick(LatLng latLng) {
-        // UI 요소 숨기기
+        // 마커 선택 해제
         if (lastSelectedMarker != null) {
             resetMarkerIcon(lastSelectedMarker);
             lastSelectedMarker = null;
         }
 
-        TextView tailTextView = ((Activity)context).findViewById(R.id.tail_text_view);
-        tailTextView.setText("");
+        // UI 요소 숨기기
+        hideLayout();
+    }
 
-        Button reportButton = ((Activity)context).findViewById(R.id.report_button);
-        reportButton.setVisibility(View.GONE);
+
+    // 레이아웃을 표시하는 메소드
+    // 레이아웃을 표시하는 메소드
+    private void showLayout() {
+        if (mainActivity != null) {
+            mainActivity.findViewById(R.id.status_text_view).setVisibility(View.VISIBLE);
+            mainActivity.findViewById(R.id.report_text_view).setVisibility(View.VISIBLE);
+            mainActivity.findViewById(R.id.report_button).setVisibility(View.VISIBLE);
+        }
+    }
+
+    // 레이아웃을 숨기는 메소드
+    private void hideLayout() {
+        if (mainActivity != null) {
+            mainActivity.findViewById(R.id.status_text_view).setVisibility(View.GONE);
+            mainActivity.findViewById(R.id.report_text_view).setVisibility(View.GONE);
+            mainActivity.findViewById(R.id.report_button).setVisibility(View.GONE);
+        }
     }
 }
-=======
-public class EventOfLamp {
-}
->>>>>>> 11275e6 (마커 색깔 변경)

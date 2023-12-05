@@ -68,7 +68,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         Button currentLocationButton = findViewById(R.id.buttonCurrentLocation);
         currentLocationButton.setOnClickListener(v -> buttonOfCurrent.addMarkerAtCurrentLocation());
 
-        tailTextView = findViewById(R.id.tail_text_view);
 
         deleteMarkerButton = findViewById(R.id.delete_marker_button);
         deleteMarkerButton.setOnClickListener(v -> {
