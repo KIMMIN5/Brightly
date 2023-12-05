@@ -1,5 +1,6 @@
 package com.example.brightly.Admin;
 
+<<<<<<< HEAD
 import android.util.Log;
 
 import com.google.firebase.database.DataSnapshot;
@@ -201,3 +202,7 @@ public class DataFetcher {
     }
 
 }
+=======
+public class DataFetcher {
+}
+>>>>>>> 11275e6 (마커 색깔 변경)

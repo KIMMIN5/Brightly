@@ -1,5 +1,6 @@
 package com.example.brightly.User;
 
+<<<<<<< HEAD
 import android.app.Activity;
 import android.content.Context;
 import android.util.Log;
@@ -141,3 +142,7 @@ public class EventOfLamp implements OnMapReadyCallback, GoogleMap.OnMarkerClickL
         reportButton.setVisibility(View.GONE);
     }
 }
+=======
+public class EventOfLamp {
+}
+>>>>>>> 11275e6 (마커 색깔 변경)
