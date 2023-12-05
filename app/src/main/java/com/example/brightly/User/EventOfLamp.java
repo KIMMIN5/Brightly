@@ -13,9 +13,10 @@ import com.example.brightly.R;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 
-public class EventOfLamp implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnCameraIdleListener {
+public class EventOfLamp implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnCameraIdleListener, GoogleMap.OnMapClickListener {
     private static final float MIN_ZOOM_LEVEL_FOR_MARKERS = 17.0f;
     private GoogleMap mMap;
     private Context context;
@@ -32,51 +33,64 @@ public class EventOfLamp implements OnMapReadyCallback, GoogleMap.OnMarkerClickL
         this.mMap = googleMap;
         mMap.setOnMarkerClickListener(this);
         mMap.setOnCameraIdleListener(this);
-
-        // 지도 클릭 리스너 추가
-        googleMap.setOnMapClickListener(latLng -> {
-            if (lastSelectedMarker != null) {
-                resetMarkerIcon(lastSelectedMarker);
-                lastSelectedMarker = null;
-            }
-        });
+        mMap.setOnMapClickListener(this); // 지도 클릭 리스너 설정
     }
 
     @Override
     public boolean onMarkerClick(Marker marker) {
-        // 마커 선택 처리
-        selectMarker(marker);
+        if (marker.getTag() instanceof DataFetcher.Streetlight) {
+            // 마커 선택 처리
+            selectMarker(marker);
 
-        // MainActivity의 selectedMarker 업데이트
-        if(context instanceof MainActivity) {
-            ((MainActivity) context).setSelectedMarker(marker);
+            // MainActivity의 selectedMarker 업데이트
+            if (context instanceof MainActivity) {
+                ((MainActivity) context).setSelectedMarker(marker);
+            }
+
+            // 이전 마커의 아이콘을 초기 상태로 복원
+            if (lastSelectedMarker != null && !lastSelectedMarker.equals(marker)) {
+                resetMarkerIcon(lastSelectedMarker);
+            }
+
+            // 선택된 마커의 아이콘 변경
+            marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE));
+            lastSelectedMarker = marker;
+
+            Object tag = marker.getTag();
+            if (tag instanceof DataFetcher.Streetlight) {
+                DataFetcher.Streetlight selectedLight = (DataFetcher.Streetlight) tag;
+                String status = selectedLight.getIsFaulty() ? "고장" : "작동중";
+
+                TextView tailTextView = ((Activity) context).findViewById(R.id.tail_text_view);
+                tailTextView.setText("가로등: " + status);
+
+                Button reportButton = ((Activity) context).findViewById(R.id.report_button);
+                reportButton.setVisibility(View.VISIBLE);
+                reportButton.setOnClickListener(v -> {
+                    // 고장 신고 로직 구현
+                });
+            }
+
+            return true;
         }
+        else {
+            // 가로등 마커가 아닐 경우
 
-        // 이전 마커의 아이콘을 초기 상태로 복원
-        if (lastSelectedMarker != null && !lastSelectedMarker.equals(marker)) {
-            resetMarkerIcon(lastSelectedMarker);
-        }
+            // 선택 해제 처리
+            if (lastSelectedMarker != null) {
+                resetMarkerIcon(lastSelectedMarker);
+                lastSelectedMarker = null;
+            }
 
-        // 선택된 마커의 아이콘 변경
-        marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE));
-        lastSelectedMarker = marker;
-
-        Object tag = marker.getTag();
-        if (tag instanceof DataFetcher.Streetlight) {
-            DataFetcher.Streetlight selectedLight = (DataFetcher.Streetlight) tag;
-            String status = selectedLight.getIsFaulty() ? "고장" : "작동중";
-
+            // UI 요소 숨기기
             TextView tailTextView = ((Activity)context).findViewById(R.id.tail_text_view);
-            tailTextView.setText("가로등: " + status);
+            tailTextView.setText("");
 
             Button reportButton = ((Activity)context).findViewById(R.id.report_button);
-            reportButton.setVisibility(View.VISIBLE);
-            reportButton.setOnClickListener(v -> {
-                // 고장 신고 로직 구현
-            });
-        }
+            reportButton.setVisibility(View.GONE);
 
-        return true;
+            return false; // 이벤트 미처리 (기본 동작 수행)
+        }
     }
 
     @Override
@@ -109,5 +123,21 @@ public class EventOfLamp implements OnMapReadyCallback, GoogleMap.OnMarkerClickL
         }
         marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE));
         lastSelectedMarker = marker;
+    }
+
+
+    @Override
+    public void onMapClick(LatLng latLng) {
+        // UI 요소 숨기기
+        if (lastSelectedMarker != null) {
+            resetMarkerIcon(lastSelectedMarker);
+            lastSelectedMarker = null;
+        }
+
+        TextView tailTextView = ((Activity)context).findViewById(R.id.tail_text_view);
+        tailTextView.setText("");
+
+        Button reportButton = ((Activity)context).findViewById(R.id.report_button);
+        reportButton.setVisibility(View.GONE);
     }
 }

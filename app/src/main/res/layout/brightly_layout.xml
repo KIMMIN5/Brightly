@@ -40,6 +40,22 @@
                 android:gravity="center"
                 android:background="#DDD" />
 
+            <TextView
+                android:id="@+id/status_text_view"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Status"
+                android:visibility="visible" />
+
+            <TextView
+                android:id="@+id/report_text_view"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Report"
+                android:visibility="visible" />
+
             <Button
                 android:id="@+id/report_button"
                 android:layout_width="wrap_content"
@@ -47,6 +63,7 @@
                 android:text="고장 신고"
                 android:visibility="gone" />
         </LinearLayout>
+
 
         <Button
             android:id="@+id/buttonCurrentLocation"

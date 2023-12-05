@@ -11,7 +11,9 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.Manifest;
 
+import com.example.brightly.Admin.BuildingManager;
 import com.example.brightly.Admin.ButtonOfCurrent;
+import com.example.brightly.Admin.DataFetcher;
 import com.example.brightly.Admin.LampManager;
 import com.example.brightly.Map.CreateMap;
 import com.example.brightly.Map.CurrentLocation;
@@ -47,6 +49,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     private Button exportButton;;
     private LampManager lampManager;
     private EventOfLamp eventOfLamp;
+    private BuildingManager buildingManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -142,6 +145,22 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.setOnMarkerClickListener(eventOfLamp);
         mMap.setOnCameraIdleListener(eventOfLamp);
         eventOfLamp.onMapReady(mMap); // EventOfLamp에 지도 설정
+
+        // BuildingManager 인스턴스 생성 및 showBuildings 호출
+        buildingManager = new BuildingManager(mMap);
+
+        DataFetcher dataFetcher = DataFetcher.getInstance();
+        dataFetcher.setBuildingDataLoadListener(new DataFetcher.BuildingDataLoadListener() {
+            @Override
+            public void onBuildingDataLoaded() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        buildingManager.showBuildings();
+                    }
+                });
+            }
+        });
     }
 
     @Override
