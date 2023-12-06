@@ -46,8 +46,12 @@ public class LampManager implements DataFetcher.DataChangeListener {
 
     private void updateMarkerColorAndTag(Marker marker, Streetlight light) {
         if (light.getIsFaulty()) {
-            marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
-        } else {
+            marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+        }
+        else if(light.getIsReport()){
+            marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
+        }
+        else {
             marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
         }
         marker.setTag(light);

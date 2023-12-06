@@ -16,6 +16,11 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class EventOfLamp implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnCameraIdleListener, GoogleMap.OnMapClickListener {
     private static final float MIN_ZOOM_LEVEL_FOR_MARKERS = 17.0f;
@@ -42,61 +47,40 @@ public class EventOfLamp implements OnMapReadyCallback, GoogleMap.OnMarkerClickL
 
     @Override
     public boolean onMarkerClick(Marker marker) {
-        if (marker.getTag() instanceof DataFetcher.Streetlight) {
-            DataFetcher.Streetlight selectedLight = (DataFetcher.Streetlight) marker.getTag();
+        Object tag = marker.getTag();
 
-            // 고장 및 신고 상태에 따른 텍스트와 색상 설정
+        // 가로등 마커일 경우
+        if (tag instanceof DataFetcher.Streetlight) {
+            DataFetcher.Streetlight selectedLight = (DataFetcher.Streetlight) tag;
+            updateMarkerColor(marker, selectedLight); // 마커 색상 업데이트
             String statusText = selectedLight.getIsFaulty() ? "고장" : "정상";
             int statusColor = selectedLight.getIsFaulty() ? Color.RED : Color.GREEN;
-            String reportText = selectedLight.getIsReport() ? "신고" : "미신고";
+            String reportText = selectedLight.getIsReport() ? "신고됨" : "미신고";
             int reportColor = selectedLight.getIsReport() ? Color.RED : Color.GREEN;
 
-            // 텍스트뷰에 상태 표시
+            // 가로등 상태 및 신고 여부 표시
             TextView statusTextView = mainActivity.findViewById(R.id.status_text_view);
             statusTextView.setText("상태: " + statusText);
             statusTextView.setTextColor(statusColor);
+            statusTextView.setVisibility(View.VISIBLE);
 
-            // 텍스트뷰에 신고 여부 표시
             TextView reportTextView = mainActivity.findViewById(R.id.report_text_view);
             reportTextView.setText("신고 여부: " + reportText);
             reportTextView.setTextColor(reportColor);
+            reportTextView.setVisibility(View.VISIBLE);
 
+            // 신고 버튼 클릭 이벤트 설정
+            Button reportButton = mainActivity.findViewById(R.id.report_button);
+            reportButton.setOnClickListener(v -> reportStreetlight(selectedLight, marker));
 
-            // 마커 선택 처리
-            selectMarker(marker);
-
-            // MainActivity의 selectedMarker 업데이트
-            if (context instanceof MainActivity) {
-                ((MainActivity) context).setSelectedMarker(marker);
-            }
-
-            // 이전 마커의 아이콘을 초기 상태로 복원
-            if (lastSelectedMarker != null && !lastSelectedMarker.equals(marker)) {
-                resetMarkerIcon(lastSelectedMarker);
-            }
-
-            // 선택된 마커의 아이콘 변경
-            marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE));
-            lastSelectedMarker = marker;
-
-            // 가로등 마커 클릭 시 UI 요소 표시
+            selectMarker(marker); // 마커 강조 및 레이아웃 표시
             showLayout();
 
-            return true;
         } else {
-            // 가로등 마커가 아닐 경우
-
-            // 선택 해제 처리
-            if (lastSelectedMarker != null) {
-                resetMarkerIcon(lastSelectedMarker);
-                lastSelectedMarker = null;
-            }
-
-            // UI 요소 숨기기
             hideLayout();
-
-            return false; // 이벤트 미처리 (기본 동작 수행)
         }
+
+        return true; // 이벤트 처리 완료
     }
 
     @Override
@@ -115,8 +99,10 @@ public class EventOfLamp implements OnMapReadyCallback, GoogleMap.OnMarkerClickL
             if (light.getIsFaulty()) {
                 // 고장난 가로등 색상 설정
                 marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+            } else if(light.getIsReport()){
+                // 고장신고접수된 가로등 색상 설정
+                marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
             } else {
-                // 정상 가로등 색상 설정
                 marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
             }
         }
@@ -139,13 +125,10 @@ public class EventOfLamp implements OnMapReadyCallback, GoogleMap.OnMarkerClickL
             resetMarkerIcon(lastSelectedMarker);
             lastSelectedMarker = null;
         }
-
         // UI 요소 숨기기
         hideLayout();
     }
 
-
-    // 레이아웃을 표시하는 메소드
     // 레이아웃을 표시하는 메소드
     private void showLayout() {
         if (mainActivity != null) {
@@ -162,5 +145,40 @@ public class EventOfLamp implements OnMapReadyCallback, GoogleMap.OnMarkerClickL
             mainActivity.findViewById(R.id.report_text_view).setVisibility(View.GONE);
             mainActivity.findViewById(R.id.report_button).setVisibility(View.GONE);
         }
+    }
+
+    private void reportStreetlight(DataFetcher.Streetlight streetlight, Marker marker) {
+        streetlight.setIsReport(true); // 가로등 신고 상태를 true로 설정
+        updateStreetlightInDatabase(streetlight); // 데이터베이스 업데이트 로직
+        updateMarkerColor(marker, streetlight); // 마커 색상 재설정
+    }
+
+    private void updateMarkerColor(Marker marker, DataFetcher.Streetlight streetlight) {
+        if (streetlight.getIsFaulty()) {
+            marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+        } else if (streetlight.getIsReport()) {
+            marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
+        } else {
+            marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
+        }
+    }
+
+    // 데이터베이스 업데이트를 위한 메서드
+    private void updateStreetlightInDatabase(DataFetcher.Streetlight streetlight) {
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
+
+        // 'streetlights' 내에서 해당 가로등의 id를 기반으로 경로를 생성합니다.
+        // 예: "streetlights/light001"
+        String streetlightId = "light" + String.format("%03d", streetlight.getId()); // id가 1이면 "light001"으로 변환
+        String streetlightPath = "streetlights/" + streetlightId;
+
+        // 'isReport' 필드를 업데이트
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("isReport", true); // 'isReport' 값을 true로 설정
+
+        // 데이터베이스에 변경 사항 적용
+        databaseReference.child(streetlightPath).updateChildren(updates)
+                .addOnSuccessListener(aVoid -> Log.d("EventOfLamp", "Data updated successfully!" + streetlightId))
+                .addOnFailureListener(e -> Log.e("EventOfLamp", "Error updating data", e));
     }
 }

@@ -19,13 +19,12 @@ public class DataFetcher {
     private Map<String, Streetlight> streetlights; // 거리등의 id를 기반으로 관리하기 위해 Map 사용
     private Map<String, Building> buildings; // 거리등의 id를 기반으로 관리하기 위해 Map 사용
     private List<DataChangeListener> listeners = new ArrayList<>();
+    private BuildingDataLoadListener buildingDataLoadListener;
 
 
     public interface BuildingDataLoadListener {
         void onBuildingDataLoaded();
     }
-
-    private BuildingDataLoadListener buildingDataLoadListener;
 
     public void setBuildingDataLoadListener(BuildingDataLoadListener listener) {
         this.buildingDataLoadListener = listener;
@@ -150,18 +149,103 @@ public class DataFetcher {
         }
 
     }
-    // 건물 데이터 모델 클래스
+
     public static class Building {
-        public double latitude;
-        public double longitude;
-        public String name;
+        private double latitude;
+        private double longitude;
+        private String name;
+        private String securityOfficePhone; // 수위실 전화번호
+        private HashMap<String, NightCourse> nightCourses; // 야간강의실 정보
 
-        public Building() {} // Default constructor for Firebase
+        // 기본 생성자
+        public Building() {
+            // Firebase를 위한 기본 생성자
+            nightCourses = new HashMap<>();
+        }
 
-        // Getters and Setters
+        // Getter 메서드들
+        public double getLatitude() {
+            return latitude;
+        }
+
+        public double getLongitude() {
+            return longitude;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getSecurityOfficePhone() {
+            return securityOfficePhone != null ? securityOfficePhone : "정보 없음";
+        }
+
+        public HashMap<String, NightCourse> getNightCourses() {
+            return nightCourses;
+        }
+
+        // 야간 강의실 정보를 문자열로 리턴하는 메소드
+        public String getNightClassroomInfo() {
+            if (nightCourses.isEmpty()) {
+                return "야간 강의 정보 없음";
+            } else {
+                StringBuilder infoBuilder = new StringBuilder();
+                for (Map.Entry<String, NightCourse> entry : nightCourses.entrySet()) {
+                    NightCourse course = entry.getValue();
+                    infoBuilder.append(course.getCourseName()).append("\n");
+                    for (Map.Entry<String, CourseSession> sessionEntry : course.getSessions().entrySet()) {
+                        CourseSession session = sessionEntry.getValue();
+                        infoBuilder.append(sessionEntry.getKey())
+                                .append(" - Room: ").append(session.getRoom())
+                                .append(", Time: ").append(session.getStartTime())
+                                .append(" to ").append(session.getEndTime())
+                                .append("\n");
+                    }
+                }
+                return infoBuilder.toString().trim();
+            }
+        }
+
+        // 야간 강의 정보를 나타내는 내부 클래스
+        public class NightCourse {
+            private String courseName;
+            private HashMap<String, CourseSession> sessions; // 요일별 세션 정보
+
+            public NightCourse() {
+                sessions = new HashMap<>();
+            }
+
+            // Getter 메서드들
+            public String getCourseName() {
+                return courseName;
+            }
+
+            public HashMap<String, CourseSession> getSessions() {
+                return sessions;
+            }
+        }
+
+        // 강의 세션 정보를 나타내는 내부 클래스
+        public class CourseSession {
+            private String startTime;
+            private String endTime;
+            private String room;
+
+            // Getter 메서드들
+            public String getStartTime() {
+                return startTime;
+            }
+
+            public String getEndTime() {
+                return endTime;
+            }
+
+            public String getRoom() {
+                return room;
+            }
+        }
     }
 
-    // 건물 데이터 로딩 메서드
     // 건물 데이터 로딩 메서드
     public void loadBuildingData() {
         DatabaseReference ref = database.getReference("Buildings");
@@ -170,18 +254,41 @@ public class DataFetcher {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Map<String, Building> newBuildings = new HashMap<>();
                 for (DataSnapshot buildingSnapshot : dataSnapshot.getChildren()) {
-                    // buildingSnapshot은 각 건물을 나타냅니다 (예: "Aramhall")
-                    DataSnapshot locationSnapshot = buildingSnapshot.child("Location");
-                    Double latitude = locationSnapshot.child("latitude").getValue(Double.class);
-                    Double longitude = locationSnapshot.child("longitude").getValue(Double.class);
+                    Building building = new Building();
+                    building.name = buildingSnapshot.getKey();
 
-                    if (latitude != null && longitude != null) {
-                        Building building = new Building();
-                        building.latitude = latitude;
-                        building.longitude = longitude;
-                        building.name = buildingSnapshot.getKey();
-                        newBuildings.put(buildingSnapshot.getKey(), building);
+                    // 위치 정보
+                    DataSnapshot locationSnapshot = buildingSnapshot.child("Location");
+                    building.latitude = locationSnapshot.child("latitude").getValue(Double.class);
+                    building.longitude = locationSnapshot.child("longitude").getValue(Double.class);
+
+                    // 수위실 정보
+                    DataSnapshot securityOfficeSnapshot = buildingSnapshot.child("SecurityOffice");
+                    if (securityOfficeSnapshot.exists()) {
+                        building.securityOfficePhone = securityOfficeSnapshot.child("PhoneNumber").getValue(String.class);
                     }
+
+                    // 야간강의 정보
+                    DataSnapshot nightCoursesSnapshot = buildingSnapshot.child("NightCourses");
+                    if (nightCoursesSnapshot.exists()) {
+                        for (DataSnapshot courseSnapshot : nightCoursesSnapshot.getChildren()) {
+                            Building.NightCourse nightCourse = building.new NightCourse();
+                            nightCourse.courseName = courseSnapshot.child("courseName").getValue(String.class);
+
+                            for (DataSnapshot sessionSnapshot : courseSnapshot.getChildren()) {
+                                if (!sessionSnapshot.getKey().equals("courseName")) { // 강의명을 제외한 나머지 데이터
+                                    Building.CourseSession session = building.new CourseSession();
+                                    session.startTime = sessionSnapshot.child("StartTime").getValue(String.class);
+                                    session.endTime = sessionSnapshot.child("EndTime").getValue(String.class);
+                                    session.room = sessionSnapshot.child("Room").getValue(String.class);
+                                    nightCourse.sessions.put(sessionSnapshot.getKey(), session); // 요일을 키로 사용
+                                }
+                            }
+                            building.nightCourses.put(courseSnapshot.getKey(), nightCourse);
+                        }
+                    }
+
+                    newBuildings.put(building.name, building);
                 }
 
                 buildings.clear();
@@ -195,7 +302,7 @@ public class DataFetcher {
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-                // ... 오류 처리 ...
+                // 오류 처리
             }
         });
     }

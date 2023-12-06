@@ -1,15 +1,13 @@
 package com.example.brightly.Admin;
 
-import static android.content.ContentValues.TAG;
-
 import android.util.Log;
 
-import com.example.brightly.Admin.DataFetcher;
+import com.example.brightly.User.EventOfBuilding;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.firebase.database.*;
 
 import java.util.Map;
 
@@ -28,11 +26,12 @@ public class BuildingManager {
         Map<String, DataFetcher.Building> buildings = dataFetcher.getBuildings();
         for (Map.Entry<String, DataFetcher.Building> entry : buildings.entrySet()) {
             DataFetcher.Building building = entry.getValue();
-            LatLng position = new LatLng(building.latitude, building.longitude);
-            mMap.addMarker(new MarkerOptions()
+            LatLng position = new LatLng(building.getLatitude(), building.getLongitude());
+            Marker marker = mMap.addMarker(new MarkerOptions()
                     .position(position)
-                    .title(building.name)
+                    .title(building.getName())
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)));
+            marker.setTag(building); // Set the building object as a tag
         }
     }
 }

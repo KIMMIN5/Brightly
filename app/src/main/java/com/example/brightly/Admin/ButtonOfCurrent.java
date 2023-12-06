@@ -26,8 +26,7 @@ public class ButtonOfCurrent {
             LatLng currentLatLng = currentLocation.getCurrentLatLng();
             if (currentLatLng != null) {
                 Marker marker = mMap.addMarker(new MarkerOptions().position(currentLatLng).title("현재 위치"));
-                marker.setTag("currentLocation"); // 태그 추가
-                Log.d("ButtonOfCurrent", "Marker added at: " + currentLatLng);
+                marker.setTag("currentLocation"); // 현재 위치 마커 구별을 위한 태그 설정
 
                 saveMarker.saveMarkerPosition(currentLatLng);
 
@@ -36,5 +35,4 @@ public class ButtonOfCurrent {
             }
         }
     }
-
 }

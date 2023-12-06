@@ -26,7 +26,6 @@ public class SharedPreferencesExporter {
                 writer.append(entry.getKey()).append(": ").append(entry.getValue().toString()).append("\n");
             }
             writer.flush();
-            Log.d("SharedPreferencesExport", "SharedPreferences exported to " + file.getAbsolutePath());
         } catch (IOException e) {
             Log.e("SharedPreferencesExport", "Error writing SharedPreferences to file", e);
         }

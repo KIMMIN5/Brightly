@@ -7,6 +7,7 @@ import androidx.fragment.app.FragmentActivity;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.Manifest;
@@ -19,6 +20,8 @@ import com.example.brightly.Map.CreateMap;
 import com.example.brightly.Map.CurrentLocation;
 import com.example.brightly.Map.DayAndNight;
 import com.example.brightly.Map.LimitedBoundary;
+import com.example.brightly.User.ButtonOfReport;
+import com.example.brightly.User.EventOfBuilding;
 import com.example.brightly.User.EventOfLamp;
 import com.example.brightly.User.Permissions;
 import com.example.brightly.Admin.SaveMarker;
@@ -42,14 +45,16 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     private CurrentLocation currentLocation;
     private ButtonOfCurrent buttonOfCurrent;
     private LimitedBoundary limitedBoundary;
-    private SaveMarker saveMarker;
     private TextView tailTextView;
+    private SaveMarker saveMarker;
     private Marker selectedMarker;
     private Button deleteMarkerButton;
-    private Button exportButton;;
+    private Button exportButton;
+    private Button reportButton;
     private LampManager lampManager;
     private EventOfLamp eventOfLamp;
     private BuildingManager buildingManager;
+    private EventOfBuilding eventOfBuilding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,9 +70,12 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
         saveMarker = new SaveMarker(this);
 
+        // 긴급 신고 버튼 초기화
+        reportButton = findViewById(R.id.buttonEmergencyReport);
+        ButtonOfReport buttonOfReport = new ButtonOfReport(this, reportButton);
+        // 현재위치마커찍기 버튼 초기화
         Button currentLocationButton = findViewById(R.id.buttonCurrentLocation);
         currentLocationButton.setOnClickListener(v -> buttonOfCurrent.addMarkerAtCurrentLocation());
-
 
         deleteMarkerButton = findViewById(R.id.delete_marker_button);
         deleteMarkerButton.setOnClickListener(v -> {
@@ -79,8 +87,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 selectedMarker = null;
             }
         });
-
-
         exportButton = findViewById(R.id.export_button);
         exportButton.setOnClickListener(v -> exportSharedPreferences());
 
@@ -89,7 +95,11 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             initializeLocationRelatedStuff();
         }
 
+        // 위치 권한 확인
         Permissions.checkLocationPermission(this);
+
+        // 전화 권한 확인
+        Permissions.checkCallPhonePermission(this);
     }
 
     public void initializeLocationRelatedStuff() {
@@ -117,54 +127,85 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
         CreateMap createMap = new CreateMap(mMap);
 
+        // 이 부분에 로그 추가
+        Log.d("MainActivity", "Map is ready");
+
+        // 현재 위치 및 버튼 관련 설정
         buttonOfCurrent = new ButtonOfCurrent(currentLocation, mMap, saveMarker);
         loadSavedMarkers();
 
+        // 지도가 로드되면, 제한된 경계 설정
         mMap.setOnMapLoadedCallback(() -> {
             LatLngBounds polygonBounds = createMap.getPolygonBounds();
             limitedBoundary = new LimitedBoundary(mMap, polygonBounds);
         });
 
+        // 위치 관련 권한이 승인된 경우 위치 관련 기능 초기화
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             initializeLocationRelatedStuff();
         }
 
-        mMap.setOnMarkerClickListener(marker -> {
-            selectedMarker = marker;
-            LatLng latLng = marker.getPosition();
-            tailTextView.setText("Lat: " + latLng.latitude + ", Lng: " + latLng.longitude);
-            Log.d("MainActivity", "Marker selected: " + latLng);
-            return false;
-        });
-
-        // LampManager 및 EventOfLamp 설정
         lampManager = new LampManager(mMap);
         eventOfLamp = new EventOfLamp(this, lampManager);
-        mMap.setOnMarkerClickListener(eventOfLamp);
-        mMap.setOnCameraIdleListener(eventOfLamp);
-        eventOfLamp.onMapReady(mMap); // EventOfLamp에 지도 설정
 
-        // BuildingManager 인스턴스 생성 및 showBuildings 호출
+        // BuildingManager 인스턴스 생성 및 건물 마커 표시
         buildingManager = new BuildingManager(mMap);
+        eventOfBuilding = new EventOfBuilding(this, mMap);
+
+        mMap.setOnCameraIdleListener(eventOfLamp);
+        eventOfLamp.onMapReady(mMap);
+        buildingManager.showBuildings();
 
         DataFetcher dataFetcher = DataFetcher.getInstance();
-        dataFetcher.setBuildingDataLoadListener(new DataFetcher.BuildingDataLoadListener() {
-            @Override
-            public void onBuildingDataLoaded() {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        buildingManager.showBuildings();
-                    }
-                });
+        dataFetcher.setBuildingDataLoadListener(() -> runOnUiThread(() -> buildingManager.showBuildings()));
+
+
+        mMap.setOnCameraIdleListener(eventOfLamp);
+        eventOfLamp.onMapReady(mMap);
+        buildingManager.showBuildings();
+
+        // 마커 클릭 이벤트 처리를 위한 중앙 핸들러 설정
+        mMap.setOnMarkerClickListener(marker -> {
+            Object tag = marker.getTag();
+            Log.d("MainActivity", "Marker clicked with tag: " + tag);
+
+            if (tag instanceof DataFetcher.Streetlight) {
+                Log.d("MainActivity", "Marker clicked with tag: " + tag);
+                return eventOfLamp.onMarkerClick(marker);
+            } else if (tag instanceof DataFetcher.Building) {
+                Log.d("MainActivity", "Marker clicked with tag: " + tag);
+                return eventOfBuilding.onMarkerClick(marker);
+            } else if ("currentLocation".equals(tag)) {
+                Log.d("MainActivity", "Marker clicked with tag: " + tag);
+                return handleCurrentLocationMarkerClick(marker);
             }
+
+            Log.d("MainActivity", "Unknown marker clicked");
+            return false;
         });
+    }
+
+    private boolean handleCurrentLocationMarkerClick(Marker marker) {
+        setSelectedMarker(marker);
+        Log.d("MainActivity", "Current location marker clicked");
+        showMarkerActionButtons(); // 현재 위치 마커 클릭 시 액션 버튼 표시
+        return true;
+    }
+
+    private void showMarkerActionButtons() {
+        deleteMarkerButton.setVisibility(View.VISIBLE);
+        exportButton.setVisibility(View.VISIBLE);
+    }
+
+    private void hideMarkerActionButtons() {
+        deleteMarkerButton.setVisibility(View.GONE);
+        exportButton.setVisibility(View.GONE);
     }
 
     @Override
     public void onLocationUpdated(LatLng newLocation) {
-        tailTextView.setText("현재 위치: " + newLocation.latitude + ", " + newLocation.longitude);
+        tailTextView.setText("현재 위치: " + newLocation.latitude + ", " +   newLocation.longitude);
     }
 
     private void loadSavedMarkers() {

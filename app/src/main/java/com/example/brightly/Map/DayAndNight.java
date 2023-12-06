@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.res.Configuration;
 
 public class DayAndNight {
-
     public static void setMapStyleBasedOnTime(GoogleMap googleMap, Context context) {
         int nightModeFlags = context.getResources().getConfiguration().uiMode
                 & Configuration.UI_MODE_NIGHT_MASK;
