@@ -44,7 +44,6 @@ public class DataFetcher {
         buildings = new HashMap<>(); // buildings 맵 초기화
         loadStreetlightData();
         loadBuildingData(); // 건물 데이터도 불러오기
-
     }
 
     public static synchronized DataFetcher getInstance() {

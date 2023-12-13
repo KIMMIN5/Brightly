@@ -55,7 +55,7 @@ public class EventOfLamp implements OnMapReadyCallback, GoogleMap.OnMarkerClickL
             updateMarkerColor(marker, selectedLight); // 마커 색상 업데이트
             String statusText = selectedLight.getIsFaulty() ? "고장" : "정상";
             int statusColor = selectedLight.getIsFaulty() ? Color.RED : Color.GREEN;
-            String reportText = selectedLight.getIsReport() ? "신고됨" : "미신고";
+            String reportText = selectedLight.getIsReport() ? "접수" : "미신고";
             int reportColor = selectedLight.getIsReport() ? Color.RED : Color.GREEN;
 
             // 가로등 상태 및 신고 여부 표시
