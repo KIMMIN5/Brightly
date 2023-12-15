@@ -14,26 +14,30 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class EventOfBuilding implements GoogleMap.OnMarkerClickListener {
-    private Context context;
-    private GoogleMap mMap;
+    private Context context; // 애플리케이션 컨텍스트
+    private GoogleMap mMap; // Google Maps 객체
 
+    // 생성자: Context와 GoogleMap 객체 초기화, 마커 클릭 리스너 설정
     public EventOfBuilding(Context context, GoogleMap map) {
         this.context = context;
         this.mMap = map;
-        mMap.setOnMarkerClickListener(this);
+        mMap.setOnMarkerClickListener(this); // 마커 클릭 리스너 설정
     }
 
+    // 마커 클릭 시 호출되는 메서드
     @Override
     public boolean onMarkerClick(Marker marker) {
         if (marker.getTag() instanceof DataFetcher.Building) {
+            // 클릭된 마커가 건물 정보를 포함하고 있는 경우
             Log.d("EventOfBuilding", "Marker clicked: " + marker.getTitle());
             DataFetcher.Building building = (DataFetcher.Building) marker.getTag();
-            showBuildingInfo(building);
-            return true;
+            showBuildingInfo(building); // 건물 정보를 표시하는 메서드 호출
+            return true; // 이벤트 처리 완료
         }
-        return false;
+        return false; // 다른 마커 클릭 시 기본 동작 수행
     }
 
+    // 건물 정보를 표시하는 메서드
     private void showBuildingInfo(DataFetcher.Building building) {
         BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(context);
         View bottomSheetView = View.inflate(context, R.layout.building_info_bottom_sheet, null);
@@ -52,11 +56,10 @@ public class EventOfBuilding implements GoogleMap.OnMarkerClickListener {
         TextView nightClassroomView = bottomSheetView.findViewById(R.id.night_class_info);
         nightClassroomView.setText("야간강의실 정보: " + getNightClassroomInfo(building));
 
-        // 필요에 따라 ScrollView 사용
-
-        bottomSheetDialog.show();
+        bottomSheetDialog.show(); // BottomSheetDialog 표시
     }
 
+    // 야간강의실 정보를 문자열로 반환하는 메서드
     private String getNightClassroomInfo(DataFetcher.Building building) {
         StringBuilder infoBuilder = new StringBuilder();
         HashMap<String, DataFetcher.Building.NightCourse> nightCourses = building.getNightCourses();

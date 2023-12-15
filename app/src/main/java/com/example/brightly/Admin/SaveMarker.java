@@ -11,10 +11,12 @@ import java.util.Set;
 public class SaveMarker {
     private SharedPreferences sharedPreferences;
 
+    // 생성자: SharedPreferences 초기화
     public SaveMarker(Context context) {
         this.sharedPreferences = context.getSharedPreferences("MarkerPref", Context.MODE_PRIVATE);
     }
 
+    // 마커 위치를 SharedPreferences에 저장
     public void saveMarkerPosition(LatLng latLng) {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         Set<String> currentMarkers = new HashSet<>(sharedPreferences.getStringSet("markers", new HashSet<>()));
@@ -24,6 +26,7 @@ public class SaveMarker {
         editor.apply();
     }
 
+    // 저장된 마커 위치를 SharedPreferences에서 제거
     public void removeMarkerPosition(LatLng latLngToRemove) {
         Set<String> currentMarkers = new HashSet<>(sharedPreferences.getStringSet("markers", new HashSet<>()));
         String latLngToRemoveString = latLngToRemove.latitude + "," + latLngToRemove.longitude;
@@ -33,6 +36,7 @@ public class SaveMarker {
         editor.apply();
     }
 
+    // SharedPreferences에서 저장된 모든 마커 위치를 로드
     public Set<LatLng> loadAllMarkerPositions() {
         Set<String> markersStringSet = sharedPreferences.getStringSet("markers", new HashSet<>());
         Set<LatLng> latLngs = new HashSet<>();

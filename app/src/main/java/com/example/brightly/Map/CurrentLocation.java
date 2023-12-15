@@ -14,15 +14,14 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 
 public class CurrentLocation {
-
     private static final String TAG = "CurrentLocation";
-    private Context context;
-    private GoogleMap googleMap;
-    private LocationManager locationManager;
-    private LatLng currentLatLng;
-    private static final long MIN_TIME = 400;
-    private static final float MIN_DISTANCE = 30;
-    private boolean isFirstLocationUpdate = true;
+    private Context context; // 애플리케이션 컨텍스트
+    private GoogleMap googleMap; // Google Maps 객체
+    private LocationManager locationManager; // 위치 정보를 관리하는 LocationManager 객체
+    private LatLng currentLatLng; // 현재 위치의 위도와 경도
+    private static final long MIN_TIME = 400; // 위치 업데이트 간 최소 시간 간격 (밀리초)
+    private static final float MIN_DISTANCE = 30; // 위치 업데이트 간 최소 거리 변화 (미터)
+    private boolean isFirstLocationUpdate = true; // 최초 위치 업데이트 여부를 확인하는 플래그
 
     public CurrentLocation(Context context, GoogleMap googleMap) {
         this.context = context;
@@ -41,13 +40,14 @@ public class CurrentLocation {
         this.locationUpdateListener = listener;
     }
 
+    // 위치 리스너 초기화 및 위치 업데이트 시작
     public void initializeLocationListener() {
         LocationListener locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
+                // 위치 변경 시 실행되는 메서드
                 if (googleMap != null) {
                     currentLatLng = new LatLng(location.getLatitude(), location.getLongitude());
-                    // 지도 카메라 이동
                     googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 17)); // 또는 원하는 줌 레벨 설정
                     // 최초 위치 변경 이벤트에서 지도의 카메라 업데이트 (단, 한 번만 실행)
                     if (isFirstLocationUpdate) {
@@ -74,6 +74,7 @@ public class CurrentLocation {
         }
     }
 
+    // 현재 위치의 위도와 경도 반환
     public LatLng getCurrentLatLng() {
         return currentLatLng;
     }

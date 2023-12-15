@@ -23,26 +23,29 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class EventOfLamp implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnCameraIdleListener, GoogleMap.OnMapClickListener {
-    private static final float MIN_ZOOM_LEVEL_FOR_MARKERS = 17.0f;
-    private GoogleMap mMap;
-    private Context context;
-    private LampManager lampManager;
-    private Marker lastSelectedMarker = null; // 마지막으로 선택된 마커 추적
-    private MainActivity mainActivity;
+    private static final float MIN_ZOOM_LEVEL_FOR_MARKERS = 17.0f; // 마커 표시에 필요한 최소 줌 레벨
+    private GoogleMap mMap; // Google Maps 객체
+    private Context context; // 애플리케이션 컨텍스트
+    private LampManager lampManager; // 가로등 관리자 객체
+    private Marker lastSelectedMarker = null; // 마지막으로 선택된 마커
+    private MainActivity mainActivity; // MainActivity 객체
 
+    // 생성자: Context, LampManager 객체 초기화, 이벤트 리스너 설정
     public EventOfLamp(Context context, LampManager lampManager) {
+        this.context = context;
+        this.lampManager = lampManager;
         if (context instanceof MainActivity) {
             this.mainActivity = (MainActivity) context;
         }
-        this.lampManager = lampManager;
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
         this.mMap = googleMap;
+        // 이벤트 리스너 설정
         mMap.setOnMarkerClickListener(this);
         mMap.setOnCameraIdleListener(this);
-        mMap.setOnMapClickListener(this); // 지도 클릭 리스너 설정
+        mMap.setOnMapClickListener(this);
     }
 
     @Override

@@ -12,34 +12,37 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CreateMap {
-    private GoogleMap googleMap;
-    private LatLngBounds polygonBounds; // 폴리곤 경계를 저장 할 변수
+    private GoogleMap googleMap; // Google Maps 객체
+    private LatLngBounds polygonBounds; // 폴리곤의 경계를 정의하는 객체
 
+    // 생성자: GoogleMap 객체 초기화 및 맵 설정
     public CreateMap(GoogleMap googleMap) {
         this.googleMap = googleMap;
         initializeMap();
     }
 
+    // 지도 초기 설정을 수행하는 메서드
     public void initializeMap() {
-        // 지도 기본 설정
+        // 지도의 기본 타입 설정 및 UI 옵션 설정
         googleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         googleMap.getUiSettings().setZoomControlsEnabled(true);
         googleMap.getUiSettings().setCompassEnabled(true);
 
-        // 폴리곤 설정 및 추가
-        List<LatLng> coordinates = coordinates();
+        // 폴리곤을 생성하고 지도에 추가
+        List<LatLng> coordinates = coordinates(); // 계명대학교 경계 좌표
         PolygonOptions polygonOptions = new PolygonOptions()
                 .addAll(coordinates)
-                .fillColor(Color.argb(30, 100, 100, 255)) // 투명도 수정
-                .strokeColor(Color.RED)
-                .strokeWidth(5f);
+                .fillColor(Color.argb(30, 100, 100, 255)) // 폴리곤 채우기 색상 및 투명도
+                .strokeColor(Color.RED) // 테두리 색상
+                .strokeWidth(5f); // 테두리 두께
         googleMap.addPolygon(polygonOptions);
 
-        // 카메라 위치 및 줌 설정
+        // 지도 카메라 위치 및 줌 설정
         LatLngBounds bounds = getLatLngBounds(coordinates);
         googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100));
     }
 
+    // 계명대학교의 경계 좌표를 반환하는 메서드
     private List<LatLng> coordinates() {
         List<LatLng> coordinates = new ArrayList<>();
         // 계명대학교 경계 좌표 반환
@@ -96,6 +99,7 @@ public class CreateMap {
         return coordinates;
     }
 
+    // 좌표 목록으로부터 LatLngBounds를 생성하는 메서드
     private LatLngBounds getLatLngBounds(List<LatLng> coordinates) {
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
         for (LatLng coord : coordinates) {
@@ -104,7 +108,7 @@ public class CreateMap {
         return builder.build();
     }
 
-    // 폴리곤 경계 반환 메서드
+    // 폴리곤 경계를 반환하는 메서드
     public LatLngBounds getPolygonBounds() {
         if (polygonBounds == null) {
             List<LatLng> coordinates = coordinates();

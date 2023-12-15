@@ -16,12 +16,13 @@ import java.util.Map;
 public class DataFetcher {
     private static DataFetcher instance;
     private FirebaseDatabase database;
-    private Map<String, Streetlight> streetlights; // 거리등의 id를 기반으로 관리하기 위해 Map 사용
-    private Map<String, Building> buildings; // 거리등의 id를 기반으로 관리하기 위해 Map 사용
-    private List<DataChangeListener> listeners = new ArrayList<>();
-    private BuildingDataLoadListener buildingDataLoadListener;
+    private Map<String, Streetlight> streetlights; // 가로등 데이터를 저장하는 맵
+    private Map<String, Building> buildings; // 건물 데이터를 저장하는 맵
+    private List<DataChangeListener> listeners = new ArrayList<>(); // 데이터 변경을 감지하는 리스너 목록
+    private BuildingDataLoadListener buildingDataLoadListener; // 건물 데이터 로드 완료 시 호출될 리스너
 
 
+    // 건물 데이터 로드 리스너 인터페이스
     public interface BuildingDataLoadListener {
         void onBuildingDataLoaded();
     }
@@ -29,6 +30,8 @@ public class DataFetcher {
     public void setBuildingDataLoadListener(BuildingDataLoadListener listener) {
         this.buildingDataLoadListener = listener;
     }
+
+    // 데이터 변경 리스너 인터페이스
     public interface DataChangeListener {
         void onDataChanged(Map<String, Streetlight> streetlights);
         void onDataLoadComplete();
@@ -46,6 +49,7 @@ public class DataFetcher {
         loadBuildingData(); // 건물 데이터도 불러오기
     }
 
+    // 싱글톤 패턴으로 인스턴스 반환
     public static synchronized DataFetcher getInstance() {
         if (instance == null) {
             instance = new DataFetcher();
@@ -61,6 +65,7 @@ public class DataFetcher {
         listeners.remove(listener);
     }
 
+    // 가로등 데이터 로드
     void loadStreetlightData() {
         DatabaseReference streetlightsRef = database.getReference("streetlights");
 
@@ -68,6 +73,7 @@ public class DataFetcher {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Map<String, Streetlight> updatedLights = new HashMap<>();
+                // 가로등 데이터 파싱 및 Map 업데이트
                 for (DataSnapshot lightSnapshot : dataSnapshot.getChildren()) {
                     Streetlight light = lightSnapshot.getValue(Streetlight.class);
                     if (light != null) {
@@ -79,7 +85,7 @@ public class DataFetcher {
                 streetlights.clear();
                 streetlights.putAll(updatedLights);
 
-                // 변경된 데이터만 리스너에 알림
+                // 리스너에게 데이터 변경 알림
                 notifyDataChanged(updatedLights);
                 notifyDataLoadComplete();
             }
@@ -106,18 +112,18 @@ public class DataFetcher {
         return streetlights;
     }
 
-    // Streetlight data model class
+    // Streetlight 데이터 모델 클래스
     public static class Streetlight {
-        public int id; // 고유한 ID 필드 추가
-        public boolean isFaulty;
-        public boolean isReport;
-        public double latitude;
-        public double longitude;
+        public int id; // 가로등의 고유 ID
+        public boolean isFaulty; // 고장 여부
+        public boolean isReport; // 신고 여부
+        public double latitude; // 위도
+        public double longitude; // 경도
 
-        // Default constructor required for calls to DataSnapshot.getValue(Streetlight.class)
+        // Firebase에서 데이터를 로드하기 위한 기본 생성자
         public Streetlight() {}
 
-        // Getters and Setters
+        // Getter 및 Setter 메서드들
         public int getId() {
             return id;
         }
@@ -149,16 +155,17 @@ public class DataFetcher {
 
     }
 
-    public static class Building {
-        private double latitude;
-        private double longitude;
-        private String name;
-        private String securityOfficePhone; // 수위실 전화번호
-        private HashMap<String, NightCourse> nightCourses; // 야간강의실 정보
 
-        // 기본 생성자
+    // Building 데이터 모델 클래스
+    public static class Building {
+        private double latitude; // 건물의 위도
+        private double longitude; // 건물의 경도
+        private String name; // 건물명
+        private String securityOfficePhone; // 수위실 전화번호
+        private HashMap<String, NightCourse> nightCourses; // 야간강의 정보
+
+        // Firebase에서 데이터를 로드하기 위한 기본 생성자
         public Building() {
-            // Firebase를 위한 기본 생성자
             nightCourses = new HashMap<>();
         }
 
@@ -207,9 +214,10 @@ public class DataFetcher {
 
         // 야간 강의 정보를 나타내는 내부 클래스
         public class NightCourse {
-            private String courseName;
+            private String courseName; // 강의명
             private HashMap<String, CourseSession> sessions; // 요일별 세션 정보
 
+            // 기본 생성자
             public NightCourse() {
                 sessions = new HashMap<>();
             }
@@ -226,9 +234,9 @@ public class DataFetcher {
 
         // 강의 세션 정보를 나타내는 내부 클래스
         public class CourseSession {
-            private String startTime;
-            private String endTime;
-            private String room;
+            private String startTime; // 시작 시간
+            private String endTime; // 종료 시간
+            private String room; // 강의실
 
             // Getter 메서드들
             public String getStartTime() {
