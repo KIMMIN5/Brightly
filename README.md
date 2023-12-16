@@ -10,10 +10,12 @@ OS: Android
 개발 환경: Android Studio
 필요한 하드웨어: GPS 기능이 탑재된 스마트폰
 최소 요구 사양: Android API Level 24
+
 Prerequisite
 
 Google Maps API: 지도 기능을 사용하기 위해 필요합니다.
 Firebase: 데이터베이스 관리 및 실시간 데이터 동기화를 위해 필요합니다.
+
 Files
 
 MainActivity.java: 앱의 메인 활동을 제어하고, 사용자 인터페이스 및 지도 설정을 초기화합니다.
@@ -23,6 +25,7 @@ EventOfBuilding.java: 건물 마커 클릭 이벤트를 처리합니다.
 LampManager.java: 가로등 정보를 관리하고 지도에 표시합니다.
 BuildingManager.java: 건물 정보를 관리하고 지도에 표시합니다.
 Permissions.java: 필요한 권한을 요청하고 처리합니다.
+
 Usage
 
 앱을 설치하고 실행합니다.
